@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0c1511">
+<title>Descarte Certo</title>
+<style>
+  :root {
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+
+    --bg: #eef5ee; --card: #ffffff; --card2: #f1f7f2; --borda: #cfdfd3;
+    --txt: #1f2a24; --suave: #566a5e; --verde: #1f8a52; --verde-esc: #156a3e;
+    --verde-fundo: rgba(31, 138, 82, .12); --certo-fundo2: rgba(31, 138, 82, .2);
+    --errado: #c0392b; --errado-fundo: rgba(192, 57, 43, .1);
+    --alerta: #96640f; --alerta-fundo: rgba(183, 121, 31, .14);
+    --on-verde: #ffffff; --trilho: #d9e7dc; --lendo: #b9cfc0; --inicio-bg: #1f8a52;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0c1511; --card: #14231b; --card2: #1a2f24; --borda: #28463a;
+    --txt: #e8f3ec; --suave: #93ab9e; --verde: #4fcf86; --verde-esc: #2a8a56;
+    --verde-fundo: rgba(79, 207, 134, .13); --certo-fundo2: rgba(79, 207, 134, .22);
+    --errado: #f0706a; --errado-fundo: rgba(240, 112, 106, .13);
+    --alerta: #e8b84a; --alerta-fundo: rgba(232, 184, 74, .13);
+    --on-verde: #07150d; --trilho: #1d3328; --lendo: #3a5a4a; --inicio-bg: #14472c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0c1511; --card: #14231b; --card2: #1a2f24; --borda: #28463a;
+    --txt: #e8f3ec; --suave: #93ab9e; --verde: #4fcf86; --verde-esc: #2a8a56;
+    --verde-fundo: rgba(79, 207, 134, .13); --certo-fundo2: rgba(79, 207, 134, .22);
+    --errado: #f0706a; --errado-fundo: rgba(240, 112, 106, .13);
+    --alerta: #e8b84a; --alerta-fundo: rgba(232, 184, 74, .13);
+    --on-verde: #07150d; --trilho: #1d3328; --lendo: #3a5a4a; --inicio-bg: #14472c;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--txt);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.45;
+    padding: 62px 16px 16px;
+    display: flex;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .25s ease;
+  }
+  body.inicio { background: var(--inicio-bg); }
+
+  .tema {
+    position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: 12px; z-index: 20;
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--borda);
+    background: var(--card); color: var(--txt); font-size: 1.2rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; touch-action: manipulation;
+  }
+  .tema:focus-visible { outline: 3px solid #f2c94c; outline-offset: 2px; }
+
+  .app { width: 100%; max-width: 540px; display: flex; flex-direction: column; justify-content: center; min-height: calc(100vh - 80px); }
+
+  .tela { display: none; }
+  .tela.ativa { display: block; animation: entrar .3s ease both; }
+  @keyframes entrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .cartao {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 24px;
+    padding: 26px 20px;
+    box-shadow: 0 10px 36px rgba(0, 0, 0, .35);
+  }
+  .centro { text-align: center; }
+
+  .selo {
+    width: 92px; height: 92px; margin: 0 auto 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 2.9rem;
+    background: var(--verde-fundo); border: 2px solid var(--verde);
+  }
+
+  h1 { font-size: 2.2rem; letter-spacing: -.5px; color: var(--verde); margin-bottom: 10px; }
+  h2 { font-size: 1.4rem; color: var(--txt); margin-bottom: 8px; }
+  .suave { color: var(--suave); }
+  p.texto { color: var(--suave); margin-bottom: 12px; font-size: 1rem; }
+
+  label.rotulo { display: block; text-align: left; font-size: .88rem; color: var(--suave); margin: 14px 0 6px; font-weight: 600; }
+
+  input[type="text"] {
+    width: 100%; background: var(--bg); color: var(--txt);
+    border: 2px solid var(--borda); border-radius: 14px; padding: 14px 16px;
+    font-size: 1.05rem; font-family: inherit; outline: none;
+  }
+  input[type="text"]:focus { border-color: var(--verde); }
+  input.codigo { text-transform: uppercase; letter-spacing: 6px; text-align: center; font-weight: 800; font-size: 1.3rem; }
+
+  .linha { display: flex; gap: 10px; }
+  .linha > * { flex: 1; min-width: 0; }
+
+  .btn {
+    display: block; width: 100%; border: none; border-radius: 16px; padding: 16px 18px;
+    font-size: 1.02rem; font-weight: 800; letter-spacing: .4px; font-family: inherit; cursor: pointer;
+    background: var(--verde); color: var(--on-verde); box-shadow: 0 4px 0 var(--verde-esc);
+    transition: transform .1s ease, box-shadow .1s ease, opacity .2s ease, filter .15s ease;
+    touch-action: manipulation; margin-top: 12px;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.07); }
+  .btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--verde-esc); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+  .btn.sec { background: transparent; color: var(--txt); border: 2px solid var(--borda); box-shadow: none; }
+  .btn.sec:hover:not(:disabled) { border-color: var(--verde); }
+  .btn.peq { padding: 11px 14px; font-size: .9rem; border-radius: 12px; }
+  .btn:focus-visible, .opcao:focus-visible, input:focus-visible { outline: 3px solid #f2c94c; outline-offset: 2px; }
+
+  .msg { min-height: 1.3em; margin-top: 10px; font-size: .92rem; color: var(--errado); font-weight: 600; }
+  .msg.ok { color: var(--verde); }
+  .aviso { margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: var(--alerta-fundo); color: var(--alerta); font-size: .88rem; display: none; }
+  .aviso.mostrar { display: block; }
+
+  .separador { display: flex; align-items: center; gap: 12px; color: var(--suave); font-size: .85rem; margin: 18px 0 4px; }
+  .separador::before, .separador::after { content: ""; flex: 1; height: 1px; background: var(--borda); }
+
+  .regras { list-style: none; text-align: left; background: var(--card2); border-radius: 16px; padding: 12px 16px; margin: 16px 0 6px; font-size: .94rem; }
+  .regras li { padding: 4px 0; display: flex; gap: 10px; }
+
+  /* Papel */
+  .papel-btn { text-align: left; display: flex; gap: 14px; align-items: center; padding: 16px; }
+  .papel-btn .ic { font-size: 1.8rem; }
+  .papel-btn small { display: block; font-weight: 500; opacity: .85; letter-spacing: 0; margin-top: 2px; }
+
+  /* Sala */
+  .codigo-sala {
+    font-size: 2.6rem; font-weight: 900; letter-spacing: 10px; color: var(--verde);
+    background: var(--bg); border: 2px dashed var(--borda); border-radius: 18px;
+    padding: 12px 8px 12px 18px; margin: 8px 0 6px; user-select: all;
+  }
+
+  .lista { list-style: none; margin: 12px 0 4px; display: grid; gap: 8px; text-align: left; }
+  .lista li {
+    display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+    background: var(--card2); border: 1px solid var(--borda); border-radius: 14px; font-weight: 600;
+  }
+  .lista li.eu { border-color: var(--verde); background: var(--verde-fundo); }
+  .lista .nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lista .pts { font-variant-numeric: tabular-nums; color: var(--verde); font-weight: 800; }
+  .lista .pos { width: 28px; text-align: center; color: var(--suave); font-weight: 800; flex-shrink: 0; }
+  .lista .est { font-size: .8rem; font-weight: 600; color: var(--suave); white-space: nowrap; }
+  .lista .est.ok { color: var(--verde); }
+  .lista-titulo { text-align: left; font-size: .85rem; color: var(--suave); font-weight: 700; margin-top: 16px; }
+  .espectadores { text-align: left; font-size: .88rem; color: var(--suave); margin-top: 10px; }
+
+  /* Jogo */
+  .topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; font-weight: 700; font-size: .92rem; }
+  .pill { background: var(--card); border: 1px solid var(--borda); border-radius: 999px; padding: 6px 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pill.urgente { color: var(--errado); border-color: var(--errado); animation: pulsar .6s ease-in-out infinite alternate; }
+  @keyframes pulsar { from { transform: scale(1); } to { transform: scale(1.06); } }
+
+  .progresso { height: 9px; background: var(--trilho); border-radius: 999px; overflow: hidden; margin-bottom: 12px; }
+  .progresso > div { height: 100%; width: 0; background: var(--verde); border-radius: 999px; transition: width .4s ease; }
+
+  .tempo-trilho { height: 6px; background: var(--trilho); border-radius: 999px; overflow: hidden; margin-bottom: 16px; }
+  .tempo-trilho > div { height: 100%; width: 100%; background: var(--verde); border-radius: 999px; transition: background .3s ease; }
+  .tempo-trilho > div.medio { background: var(--alerta); }
+  .tempo-trilho > div.baixo { background: var(--errado); }
+  .tempo-trilho > div.lendo { background: var(--lendo); }
+
+  .faixa-espectador { display: none; margin-bottom: 12px; padding: 9px 12px; border-radius: 12px; background: var(--alerta-fundo); color: var(--alerta); font-weight: 700; font-size: .9rem; text-align: center; }
+  .faixa-espectador.mostrar { display: block; }
+
+  .pergunta-topo { text-align: center; }
+  .emoji { font-size: 4rem; line-height: 1.1; }
+  .objeto { display: inline-block; margin-top: 6px; padding: 4px 12px; border-radius: 999px; background: var(--verde-fundo); color: var(--verde); font-size: .82rem; font-weight: 700; }
+  .pergunta { font-size: 1.25rem; font-weight: 700; margin-top: 12px; min-height: 3.2em; }
+
+  .i { visibility: hidden; }
+  .digitando .v::after { content: "▍"; color: var(--verde); animation: piscar .7s steps(1) infinite; margin-left: 1px; }
+  @keyframes piscar { 50% { opacity: 0; } }
+
+  .opcoes { display: grid; gap: 10px; margin-top: 16px; }
+  .opcao {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    background: var(--card2); border: 2px solid var(--borda); border-radius: 16px; padding: 13px;
+    font-family: inherit; font-size: 1rem; color: var(--txt); cursor: pointer; min-height: 56px;
+    transition: border-color .15s ease, background .15s ease, opacity .35s ease, transform .35s ease;
+    touch-action: manipulation;
+  }
+  .opcao.oculta { opacity: 0; transform: translateY(6px); }
+  .opcao:disabled { cursor: default; }
+  .opcao:hover:not(:disabled) { border-color: var(--verde); }
+  .opcao .letra {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--verde-fundo); color: var(--verde);
+    font-weight: 800; display: flex; align-items: center; justify-content: center;
+  }
+  .opcao .texto { flex: 1; }
+  .opcao .marca { margin-left: auto; flex-shrink: 0; font-size: 1.15rem; }
+  .opcao.sel { border-color: var(--verde); background: var(--verde-fundo); }
+  .opcao.sel .letra { background: var(--verde); color: var(--on-verde); }
+  .opcao.correta { border-color: var(--verde); background: var(--certo-fundo2); }
+  .opcao.correta .letra { background: var(--verde); color: var(--on-verde); }
+  .opcao.errada { border-color: var(--errado); background: var(--errado-fundo); }
+  .opcao.errada .letra { background: var(--errado); color: var(--on-verde); }
+  .opcao.neutra { opacity: .5; }
+
+  .feedback { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 14px; font-weight: 700; font-size: .96rem; }
+  .feedback.mostrar { display: block; animation: entrar .25s ease both; }
+  .feedback.acerto { background: var(--verde-fundo); color: var(--verde); }
+  .feedback.erro { background: var(--errado-fundo); color: var(--errado); }
+  .feedback.info { background: var(--alerta-fundo); color: var(--alerta); }
+  .feedback.neutro { background: var(--card2); color: var(--suave); }
+
+  .dica { margin-top: 12px; text-align: center; font-size: .88rem; color: var(--suave); min-height: 1.3em; }
+
+  .placar-box { margin-top: 18px; }
+
+  /* Final */
+  .placar { font-size: 2.3rem; font-weight: 900; color: var(--verde); margin: 4px 0; font-variant-numeric: tabular-nums; }
+  .mensagem { background: var(--card2); border-radius: 16px; padding: 14px; margin: 14px 0 6px; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px);
+    background: var(--card2); border: 1px solid var(--verde); color: var(--txt); padding: 10px 16px; border-radius: 999px;
+    font-weight: 600; font-size: .9rem; opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease; max-width: 90vw; text-align: center; z-index: 10;
+  }
+  #toast.mostrar { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 380px) {
+    .cartao { padding: 20px 14px; }
+    h1 { font-size: 1.9rem; }
+    .emoji { font-size: 3.3rem; }
+    .pergunta { font-size: 1.1rem; }
+    .opcao { font-size: .95rem; padding: 11px; }
+    .codigo-sala { font-size: 2.1rem; letter-spacing: 7px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tela.ativa, .feedback.mostrar { animation: none; }
+    .pill.urgente { animation: none; }
+  }
+</style>
+</head>
+<body class="inicio">
+<button type="button" class="tema" id="btnTema" aria-label="Alternar modo claro ou escuro">🌙</button>
+<main class="app">
+
+  <!-- INÍCIO -->
+  <section id="telaInicio" class="tela ativa" aria-labelledby="titulo">
+    <div class="cartao centro">
+      <div class="selo" aria-hidden="true">♻️</div>
+      <h1 id="titulo">Descarte Certo</h1>
+      <p class="texto">Quiz online sobre lixo eletrônico, reciclagem e descarte correto. Crie uma sala e chame a turma!</p>
+
+      <label class="rotulo" for="inpNome">Seu nome</label>
+      <input type="text" id="inpNome" maxlength="16" placeholder="Como quer ser chamado?" autocomplete="off">
+
+      <label class="rotulo" for="inpSenha">Senha da sala</label>
+      <input type="text" id="inpSenha" maxlength="20" placeholder="Ao criar, escolha uma senha" autocomplete="off" autocapitalize="off" spellcheck="false">
+
+      <button type="button" class="btn" id="btnCriar">CRIAR SALA</button>
+      <p class="dica">O código da sala é gerado automaticamente ao criar.</p>
+
+      <div class="separador">ou entre numa sala existente</div>
+
+      <label class="rotulo" for="inpCodigo">Código da sala</label>
+      <input type="text" id="inpCodigo" class="codigo" maxlength="4" placeholder="CÓDIGO" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <button type="button" class="btn sec" id="btnEntrar">ENTRAR NA SALA</button>
+
+      <p class="msg" id="msgInicio" role="alert"></p>
+      <p class="aviso" id="avisoOnline">Seu navegador não suporta salas online. Tente abrir em outro navegador.</p>
+
+      <ul class="regras">
+        <li><span aria-hidden="true">❓</span><span><b id="infoTotal">25</b> perguntas, uma de cada vez</span></li>
+        <li><span aria-hidden="true">⏱️</span><span>10 segundos para responder, depois de ler tudo</span></li>
+        <li><span aria-hidden="true">⭐</span><span>10 pontos por acerto</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ESCOLHA DO PAPEL -->
+  <section id="telaPapel" class="tela" aria-labelledby="tituloPapel">
+    <div class="cartao centro">
+      <h2 id="tituloPapel">Como você quer participar?</h2>
+      <p class="texto" id="papelInfo"></p>
+      <button type="button" class="btn papel-btn" id="btnPapelJogar">
+        <span class="ic" aria-hidden="true">🎮</span>
+        <span>JOGAR<small>Responda as perguntas e ganhe pontos</small></span>
+      </button>
+      <button type="button" class="btn sec papel-btn" id="btnPapelAssistir">
+        <span class="ic" aria-hidden="true">👁️</span>
+        <span>ASSISTIR<small>Veja as perguntas e a pontuação de todos, sem responder</small></span>
+      </button>
+      <p class="msg" id="msgPapel" role="alert"></p>
+      <button type="button" class="btn sec peq" id="btnPapelVoltar">VOLTAR</button>
+    </div>
+  </section>
+
+  <!-- SALA (LOBBY) -->
+  <section id="telaSala" class="tela" aria-labelledby="tituloSala">
+    <div class="cartao centro">
+      <h2 id="tituloSala">Sala de espera</h2>
+      <p class="texto">Passe o código e a senha para a turma:</p>
+      <div class="codigo-sala" id="salaCodigo">----</div>
+      <p class="texto" id="salaSenha" style="margin-bottom:0"></p>
+      <button type="button" class="btn sec peq" id="btnCopiar" style="margin-top:6px">COPIAR CÓDIGO</button>
+
+      <div class="lista-titulo" id="salaTitulo">Jogadores (0)</div>
+      <ul class="lista" id="salaLista"></ul>
+      <div class="espectadores" id="salaEspect"></div>
+
+      <button type="button" class="btn" id="btnIniciar">COMEÇAR JOGO</button>
+      <p class="dica" id="salaAguarde"></p>
+      <button type="button" class="btn sec peq" id="btnSairSala">SAIR DA SALA</button>
+    </div>
+  </section>
+
+  <!-- JOGO -->
+  <section id="telaJogo" class="tela" aria-label="Pergunta">
+    <div class="topo">
+      <span class="pill" id="topoContador">Pergunta 1 de 25</span>
+      <span class="pill" id="topoTempo">📖 Lendo</span>
+      <span class="pill" id="topoPontos">⭐ 0</span>
+    </div>
+
+    <div class="progresso" id="progresso" role="progressbar" aria-label="Progresso do jogo" aria-valuemin="0" aria-valuemax="25" aria-valuenow="0"><div id="progressoFill"></div></div>
+
+    <div class="faixa-espectador" id="faixaEspect">👁️ Você está assistindo. A resposta certa não aparece para espectadores.</div>
+
+    <div class="cartao">
+      <div class="tempo-trilho" aria-hidden="true"><div id="tempoFill" class="lendo"></div></div>
+
+      <div class="pergunta-topo">
+        <div class="emoji" id="emoji" aria-hidden="true">📱</div>
+        <span class="objeto" id="objeto">Objeto</span>
+        <h2 class="pergunta" id="textoPergunta"></h2>
+      </div>
+
+      <div class="opcoes" id="opcoes"></div>
+
+      <button type="button" class="btn" id="btnResponder" disabled>RESPONDER</button>
+      <p class="dica" id="dicaJogo"></p>
+      <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+      <button type="button" class="btn sec peq" id="btnPular" style="display:none">PRÓXIMA PERGUNTA</button>
+    </div>
+
+    <div class="placar-box">
+      <div class="lista-titulo">Placar ao vivo</div>
+      <ul class="lista" id="rankingJogo"></ul>
+      <div class="espectadores" id="espectJogo"></div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section id="telaFinal" class="tela" aria-labelledby="tituloFinal">
+    <div class="cartao centro">
+      <div class="selo" id="seloFinal" aria-hidden="true">🌍</div>
+      <h2 id="tituloFinal">Fim de jogo!</h2>
+      <div class="placar" id="placarFinal"></div>
+      <div class="suave" id="detalheFinal"></div>
+      <div class="mensagem" id="mensagemFinal"></div>
+
+      <div class="lista-titulo">Classificação</div>
+      <ul class="lista" id="rankingFinal"></ul>
+      <div class="espectadores" id="espectFinal"></div>
+
+      <button type="button" class="btn" id="btnNovamente">JOGAR NOVAMENTE</button>
+      <p class="dica" id="aguardeNovamente"></p>
+      <button type="button" class="btn sec peq" id="btnSairFinal">SAIR DA SALA</button>
+    </div>
+  </section>
+
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =====================================================
+     PERGUNTAS  (correta: 0 = A, 1 = B, 2 = C, 3 = D)
+     ===================================================== */
+  const perguntas = [
+    { emoji: "📱", objeto: "Lixo eletrônico", pergunta: "O que é lixo eletrônico?",
+      opcoes: ["Restos de alimentos", "Aparelhos eletrônicos descartados", "Resíduos de plantas", "Papel usado"], correta: 1 },
+    { emoji: "♻️", objeto: "E-lixo", pergunta: "Qual é outro nome para lixo eletrônico?",
+      opcoes: ["E-lixo", "Lixo orgânico", "Lixo doméstico", "Lixo natural"], correta: 0 },
+    { emoji: "💻", objeto: "Celular antigo", pergunta: "Qual destes é um exemplo de lixo eletrônico?",
+      opcoes: ["Garrafa de vidro", "Folha de papel", "Celular antigo", "Casca de fruta"], correta: 2 },
+    { emoji: "☠️", objeto: "Lixo eletrônico", pergunta: "Por que o lixo eletrônico pode prejudicar o meio ambiente?",
+      opcoes: ["Porque desaparece rapidamente", "Porque pode conter substâncias tóxicas", "Porque produz oxigênio", "Porque melhora o solo"], correta: 1 },
+    { emoji: "🗑️", objeto: "Celular usado", pergunta: "O que devemos fazer com um celular que não usamos mais?",
+      opcoes: ["Jogar no rio", "Quebrá-lo e enterrar", "Jogá-lo no lixo comum", "Levá-lo a um ponto de coleta adequado"], correta: 3 },
+    { emoji: "🔋", objeto: "Pilhas e baterias", pergunta: "Pilhas e baterias são consideradas resíduos eletrônicos?",
+      opcoes: ["Sim", "Não", "Apenas as pilhas novas", "Apenas as baterias de carros"], correta: 0 },
+    { emoji: "🚯", objeto: "Pilha usada", pergunta: "Podemos jogar pilhas usadas no lixo comum?",
+      opcoes: ["Sim, sempre", "Sim, se estiverem descarregadas", "Não, devem ser levadas a pontos de coleta adequados", "Apenas durante a noite"], correta: 2 },
+    { emoji: "🌎", objeto: "Lixo eletrônico", pergunta: "O descarte incorreto de lixo eletrônico pode contaminar:",
+      opcoes: ["Apenas o ar", "O solo e a água", "Apenas os alimentos", "Apenas os objetos"], correta: 1 },
+    { emoji: "♻️", objeto: "Lixo eletrônico", pergunta: "O lixo eletrônico pode ser reciclado?",
+      opcoes: ["Não, nunca", "Apenas celulares", "Apenas computadores", "Sim, muitos materiais podem ser recuperados"], correta: 3 },
+    { emoji: "🪙", objeto: "Aparelho eletrônico", pergunta: "Qual destes metais pode ser encontrado em alguns aparelhos eletrônicos?",
+      opcoes: ["Ouro", "Madeira", "Papel", "Algodão"], correta: 0 },
+    { emoji: "🖥️", objeto: "Computador", pergunta: "Qual destes aparelhos pode se tornar lixo eletrônico?",
+      opcoes: ["Computador", "Banana", "Caderno", "Garfo"], correta: 0 },
+    { emoji: "🔐", objeto: "Celular usado", pergunta: "O que devemos fazer antes de descartar um celular usado?",
+      opcoes: ["Jogá-lo na água", "Apagar os dados pessoais", "Quebrar a tela", "Retirar todos os botões"], correta: 1 },
+    { emoji: "🌱", objeto: "Reciclagem", pergunta: "A reciclagem de eletrônicos ajuda a economizar:",
+      opcoes: ["Recursos naturais", "Água apenas", "Energia solar apenas", "Alimentos"], correta: 0 },
+    { emoji: "🔄", objeto: "Reutilização", pergunta: "O que significa reutilizar um aparelho eletrônico?",
+      opcoes: ["Jogá-lo fora", "Queimá-lo", "Continuar usando ou dar uma nova utilidade", "Enterrá-lo"], correta: 2 },
+    { emoji: "🎁", objeto: "Computador funcionando", pergunta: "Doar um computador que ainda funciona pode ajudar a:",
+      opcoes: ["Aumentar o lixo eletrônico", "Reduzir o descarte desnecessário", "Contaminar o solo", "Destruir o aparelho"], correta: 1 },
+    { emoji: "💧", objeto: "Eletrônicos em rios", pergunta: "O que pode acontecer quando eletrônicos são descartados em rios?",
+      opcoes: ["A água fica mais limpa", "Os peixes produzem mais oxigênio", "Pode ocorrer contaminação da água", "O lixo desaparece imediatamente"], correta: 2 },
+    { emoji: "🔥", objeto: "Lixo eletrônico", pergunta: "Por que não devemos queimar lixo eletrônico?",
+      opcoes: ["Porque pode liberar substâncias tóxicas", "Porque deixa os aparelhos novos", "Porque produz água", "Porque melhora a qualidade do ar"], correta: 0 },
+    { emoji: "🔌", objeto: "Cabos e carregadores", pergunta: "Cabos e carregadores antigos podem ser reciclados?",
+      opcoes: ["Não", "Sim", "Apenas se forem novos", "Apenas se forem de celulares"], correta: 1 },
+    { emoji: "📍", objeto: "Ponto de coleta", pergunta: "O que são pontos de coleta de lixo eletrônico?",
+      opcoes: ["Locais para vender aparelhos novos", "Locais preparados para receber resíduos eletrônicos", "Lojas de jogos", "Locais para jogar lixo orgânico"], correta: 1 },
+    { emoji: "🛒", objeto: "Aparelhos duráveis", pergunta: "Comprar aparelhos mais duráveis ajuda a:",
+      opcoes: ["Aumentar o lixo eletrônico", "Reduzir a quantidade de descarte", "Aumentar a poluição", "Gastar mais recursos naturais"], correta: 1 },
+    { emoji: "🛠️", objeto: "Aparelho antigo", pergunta: "Antes de comprar um aparelho novo, uma atitude sustentável é:",
+      opcoes: ["Jogar o aparelho antigo fora imediatamente", "Verificar se o antigo pode ser consertado", "Quebrar o aparelho antigo", "Comprar vários aparelhos"], correta: 1 },
+    { emoji: "🏭", objeto: "Materiais reciclados", pergunta: "O que pode acontecer com materiais recuperados na reciclagem eletrônica?",
+      opcoes: ["Podem ser usados na fabricação de novos produtos", "Precisam ser queimados", "São sempre enterrados", "Não podem ser utilizados novamente"], correta: 0 },
+    { emoji: "📺", objeto: "Televisão antiga", pergunta: "Uma televisão antiga pode ser considerada:",
+      opcoes: ["Lixo orgânico", "Lixo eletrônico", "Resíduo alimentar", "Lixo hospitalar"], correta: 1 },
+    { emoji: "👥", objeto: "Responsabilidade", pergunta: "Quem deve ajudar a reduzir o problema do lixo eletrônico?",
+      opcoes: ["Apenas os consumidores", "Apenas as empresas", "Apenas o governo", "Consumidores, empresas e governos"], correta: 3 },
+    { emoji: "🌍", objeto: "Lixo eletrônico", pergunta: "Qual é uma das melhores formas de reduzir o impacto do lixo eletrônico?",
+      opcoes: ["Jogar aparelhos no lixo comum", "Queimar aparelhos antigos", "Reduzir o consumo, reutilizar, consertar e descartar corretamente", "Jogar eletrônicos em rios"], correta: 2 }
+  ];
+
+  /* =====================================================
+     CONFIGURAÇÃO
+     ===================================================== */
+  const PONTOS = 10;
+  const TEMPO_MS = 10000;        // tempo para responder
+  const REVELAR_MS = 6000;       // tempo mostrando o resultado
+  const VEL_PERGUNTA = 26;       // ms por letra (pergunta)
+  const VEL_OPCAO = 20;          // ms por letra (alternativas)
+  const PAUSA_MS = 450;          // pausa entre alternativas
+  const INICIO_MS = 350;
+  const LETRAS = ["A", "B", "C", "D"];
+  const CODIGO_CARACTERES = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  const TOTAL = perguntas.length;
+  const MAXIMO = TOTAL * PONTOS;
+
+  /* =====================================================
+     ESTADO
+     ===================================================== */
+  let sala = null;            // sala nomeada (ou sala local no modo sozinho)
+  let desinscrever = null;
+  let codigo = "";
+  let meuNome = "";
+  let meuModo = "jogador";    // "jogador" | "espectador"
+  let souHost = false;
+  let viuHost = false;
+  let hostSumiuEm = 0;
+  let seqObs = -1;
+  let seqHost = 0;
+
+  let fase = "lobby";         // lobby | ler | responder | revelar | fim
+  let semente = 0;
+  let qiAtual = -1;
+  let tFase = 0;
+
+  let atual = null;           // pergunta montada (com alternativas embaralhadas)
+  let escolha = -1;
+  let confirmada = false;
+  let pts = 0;
+  let acertos = 0;
+  const pontuadas = new Set();
+
+  const $ = (id) => document.getElementById(id);
+  const telas = ["telaInicio", "telaPapel", "telaSala", "telaJogo", "telaFinal"];
+  let acaoPendente = null;    // "criar" | "entrar"
+  let codigoPendente = "";
+  const MEU_ID = "p" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  let senhaPendente = "";
+  let senhaHash = "";
+  let senhaTexto = "";
+  let verificado = false;   // só aplica o estado da sala depois de validar a senha
+
+  /* =====================================================
+     UTILIDADES
+     ===================================================== */
+  function mostrar(id) {
+    telas.forEach(function (t) { $(t).classList.toggle("ativa", t === id); });
+    document.body.classList.toggle("inicio", id === "telaInicio");
+    window.scrollTo(0, 0);
+  }
+
+  let toastTimer = null;
+  function aviso(texto) {
+    const t = $("toast");
+    t.textContent = texto;
+    t.classList.add("mostrar");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("mostrar"); }, 3200);
+  }
+
+  function esperar(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  function guardarNome(n) { try { localStorage.setItem("descarte-nome", n); } catch (e) {} }
+  function lerNome() { try { return localStorage.getItem("descarte-nome") || ""; } catch (e) { return ""; } }
+
+  function nomeLimpo(s) {
+    s = String(s || "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 16);
+    return s || ("Jogador" + (10 + Math.floor(Math.random() * 90)));
+  }
+
+  // Hash simples (cyrb53) da senha: a sala guarda só o hash, nunca a senha em texto.
+  function hashSenha(cod, senha) {
+    const str = cod.toUpperCase() + "|" + senha;
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  }
+
+  function gerarCodigo() {
+    let c = "";
+    for (let i = 0; i < 4; i++) c += CODIGO_CARACTERES[Math.floor(Math.random() * CODIGO_CARACTERES.length)];
+    return c;
+  }
+
+  /* Embaralhamento determinístico: todos os participantes usam a mesma semente
+     e veem as alternativas na mesma ordem. A correta é achada pelo índice original. */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function montar(qi, sem) {
+    const p = perguntas[qi];
+    const rnd = mulberry32((sem ^ Math.imul(qi + 1, 2654435761)) >>> 0);
+    const ordem = [0, 1, 2, 3];
+    for (let i = ordem.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const tmp = ordem[i]; ordem[i] = ordem[j]; ordem[j] = tmp;
+    }
+    return {
+      qi: qi,
+      p: p,
+      textos: ordem.map(function (o) { return p.opcoes[o]; }),
+      corretaPos: ordem.indexOf(p.correta)
+    };
+  }
+
+  function linhaDoTempo(m) {
+    const L = { p: [INICIO_MS, INICIO_MS + m.p.pergunta.length * VEL_PERGUNTA], o: [] };
+    let t = L.p[1] + PAUSA_MS * 1.5;
+    for (let i = 0; i < 4; i++) {
+      const dur = m.textos[i].length * VEL_OPCAO;
+      L.o.push([t, t + dur]);
+      t += dur + PAUSA_MS;
+    }
+    L.total = t;
+    return L;
+  }
+
+  function leituraMs(qi) {
+    return linhaDoTempo(montar(qi, semente)).total + 300;
+  }
+
+  function mensagemDesempenho(pct) {
+    if (pct === 100) return { selo: "🏆", texto: "Perfeito! Você acertou todas as perguntas e sabe muito bem como descartar o lixo eletrônico." };
+    if (pct >= 80) return { selo: "🌟", texto: "Excelente! Você entende bem o assunto e já faz a diferença para o meio ambiente." };
+    if (pct >= 60) return { selo: "🌿", texto: "Muito bom! Você sabe bastante, mas ainda dá para aprender mais sobre o descarte correto." };
+    if (pct >= 40) return { selo: "🌱", texto: "Bom começo! Jogue de novo para fixar o que é lixo eletrônico e como descartá-lo." };
+    return { selo: "📚", texto: "Continue aprendendo! Leia mais sobre lixo eletrônico e tente melhorar sua pontuação." };
+  }
+
+  /* =====================================================
+     FIREBASE REALTIME DATABASE (via REST + EventSource, sem bibliotecas)
+     Estrutura:  /salas/{CÓDIGO}/jogadores/{idDoParticipante} = { nome, modo, pts, resp, hb, ... }
+     O anfitrião também grava host, hostDesde, senha (hash) e jogo (estado da partida).
+     ===================================================== */
+  /*ADAPTER-INICIO*/
+  const DB_URL = "https://quiz-online-777-default-rtdb.firebaseio.com";
+  const VIVO_MS = 12000;   // sem sinal de vida por esse tempo = saiu da sala
+  const HB_MS = 3000;      // intervalo do sinal de vida
+
+  function criarSalaFirebase(cod, meuId) {
+    const base = DB_URL + "/salas/" + cod;
+    let dados = null;
+    let snap = [];
+    const ouvintes = [];
+    const ouvintesErro = [];
+    const visto = {};
+    const meuLocal = {};
+    let es = null;
+    let fechado = false;
+    let agendado = false;
+    let pend = null;
+    let enviando = false;
+    let falhas = 0;
+    const timers = [];
+
+    function definir(path, valor) {
+      const partes = path.split("/").filter(Boolean);
+      if (!partes.length) { dados = (valor === undefined) ? null : valor; return; }
+      if (dados === null || typeof dados !== "object") dados = {};
+      let no = dados;
+      for (let i = 0; i < partes.length - 1; i++) {
+        const k = partes[i];
+        if (no[k] === null || no[k] === undefined || typeof no[k] !== "object") no[k] = {};
+        no = no[k];
+      }
+      const ult = partes[partes.length - 1];
+      if (valor === null || valor === undefined) delete no[ult]; else no[ult] = valor;
+    }
+
+    function aplicarEvento(path, data, merge) {
+      if (merge) {
+        Object.keys(data || {}).forEach(function (k) {
+          aplicarEvento((path === "/" ? "" : path) + "/" + k, data[k], false);
+        });
+      } else {
+        definir(path, data);
+      }
+    }
+
+    function montarSnap() {
+      const agora = Date.now();
+      const js = (dados && dados.jogadores) || {};
+      const lista = [];
+      Object.keys(js).forEach(function (id) {
+        if (id === meuId) return;
+        const d = js[id];
+        if (!d || typeof d !== "object") return;
+        let v = visto[id];
+        if (!v) { v = visto[id] = { hb: d.hb, em: agora }; }
+        else if (v.hb !== d.hb) { v.hb = d.hb; v.em = agora; }
+        if (agora - v.em > VIVO_MS) return;
+        lista.push(Object.freeze({
+          peer: id, by: null, isMe: false, sameTab: false, kind: "viewer", guest: false,
+          presence: Object.freeze(Object.assign({}, d)), updatedAt: v.em
+        }));
+      });
+      if (meuLocal.nome !== undefined) {
+        lista.push(Object.freeze({
+          peer: meuId, by: null, isMe: true, sameTab: true, kind: "viewer", guest: false,
+          presence: Object.freeze(Object.assign({}, meuLocal)), updatedAt: agora
+        }));
+      }
+      snap = lista;
+    }
+
+    function notificar() {
+      if (agendado || fechado) return;
+      agendado = true;
+      setTimeout(function () {
+        agendado = false;
+        if (fechado) return;
+        montarSnap();
+        const ch = { peers: snap, joined: [], left: [], updated: [] };
+        ouvintes.slice().forEach(function (f) { try { f(ch); } catch (e) { if (window.console) console.error(e); } });
+      }, 0);
+    }
+
+    function erro(msg) { ouvintesErro.slice().forEach(function (f) { try { f(msg); } catch (e) {} }); }
+
+    async function flush() {
+      enviando = true;
+      while (pend && !fechado) {
+        const p = pend;
+        pend = null;
+        try {
+          const r = await fetch(base + "/jogadores/" + meuId + ".json", { method: "PATCH", body: JSON.stringify(p) });
+          if (!r.ok) throw new Error("http " + r.status);
+          falhas = 0;
+        } catch (e) {
+          falhas++;
+          if (falhas === 4) erro("Problema de conexão com o servidor. Verifique a internet e as regras do Firebase.");
+          const q = pend || {};
+          Object.keys(p).forEach(function (k) { if (!(k in q)) q[k] = p[k]; });
+          pend = q;
+          await new Promise(function (r) { setTimeout(r, 1000); });
+        }
+      }
+      enviando = false;
+    }
+
+    function enviar(patch) {
+      pend = Object.assign(pend || {}, patch);
+      if (!enviando) flush();
+    }
+
+    function presence(patch) {
+      if (fechado) return Promise.resolve();
+      Object.keys(patch).forEach(function (k) {
+        if (patch[k] === null || patch[k] === undefined) delete meuLocal[k]; else meuLocal[k] = patch[k];
+      });
+      enviar(patch);
+      notificar();
+      return Promise.resolve();
+    }
+
+    function receber(e, merge) {
+      try {
+        const m = JSON.parse(e.data);
+        aplicarEvento(m.path, m.data, merge);
+        notificar();
+      } catch (err) {}
+    }
+
+    function iniciar() {
+      es = new EventSource(base + ".json");
+      es.addEventListener("put", function (e) { receber(e, false); });
+      es.addEventListener("patch", function (e) { receber(e, true); });
+      es.addEventListener("cancel", function () { erro("O servidor recusou a leitura da sala. Verifique as regras do Firebase."); });
+      timers.push(setInterval(notificar, 1000));
+      timers.push(setInterval(function () {
+        // sinal de vida: reenvia o próprio estado completo (também recria o registro se ele sumir)
+        if (meuLocal.nome === undefined || fechado) return;
+        meuLocal.hb = Date.now();
+        enviar(Object.assign({}, meuLocal));
+      }, HB_MS));
+    }
+
+    function sozinha() {
+      montarSnap();
+      return !snap.some(function (p) { return !p.isMe; });
+    }
+
+    async function leave() {
+      if (fechado) return;
+      const so = sozinha();
+      fechado = true;
+      timers.forEach(clearInterval);
+      if (es) { try { es.close(); } catch (e) {} es = null; }
+      ouvintes.length = 0;
+      try {
+        await fetch(so ? base + ".json" : base + "/jogadores/" + meuId + ".json", { method: "DELETE", keepalive: true });
+      } catch (e) {}
+    }
+
+    function sairRapido() {
+      if (fechado) return;
+      const so = sozinha();
+      try {
+        fetch(so ? base + ".json" : base + "/jogadores/" + meuId + ".json", { method: "DELETE", keepalive: true });
+      } catch (e) {}
+    }
+
+    iniciar();
+
+    return {
+      presence: presence,
+      peers: function () { montarSnap(); return snap; },
+      onPeers: function (f) {
+        ouvintes.push(f);
+        notificar();
+        return function () { const i = ouvintes.indexOf(f); if (i >= 0) ouvintes.splice(i, 1); };
+      },
+      onErro: function (f) { ouvintesErro.push(f); },
+      leave: leave,
+      sairRapido: sairRapido,
+      _aplicarEvento: aplicarEvento,
+      _dados: function () { return dados; }
+    };
+  }
+  /*ADAPTER-FIM*/
+
+  /* =====================================================
+     PRESENÇA / PARTICIPANTES
+     ===================================================== */
+  function pres(patch) {
+    if (!sala) return;
+    try { sala.presence(patch).catch(function () {}); } catch (e) {}
+  }
+
+  function pessoas() {
+    if (!sala) return [];
+    return sala.peers().filter(function (p) { return p.kind === "viewer"; });
+  }
+
+  function hostAtual(ps) {
+    const hs = ps.filter(function (p) { return p.presence && p.presence.host === true; });
+    if (!hs.length) return null;
+    hs.sort(function (a, b) {
+      return ((a.presence.hostDesde || 0) - (b.presence.hostDesde || 0)) || a.peer.localeCompare(b.peer);
+    });
+    return hs[0];
+  }
+
+  function nomeDe(p) { return String((p.presence && p.presence.nome) || "Jogador").slice(0, 16); }
+  function jogadores(ps) { return ps.filter(function (p) { return p.presence && p.presence.modo === "jogador"; }); }
+  function espectadores(ps) { return ps.filter(function (p) { return p.presence && p.presence.modo === "espectador"; }); }
+  function ptsDe(p) { const v = p.presence && p.presence.pts; return typeof v === "number" ? v : 0; }
+
+  function ordenarRanking(js) {
+    return js.slice().sort(function (a, b) {
+      return (ptsDe(b) - ptsDe(a)) || nomeDe(a).localeCompare(nomeDe(b));
+    });
+  }
+
+  function liItem(opts) {
+    const li = document.createElement("li");
+    if (opts.eu) li.className = "eu";
+    if (opts.pos) {
+      const pos = document.createElement("span");
+      pos.className = "pos";
+      pos.textContent = opts.pos;
+      li.appendChild(pos);
+    }
+    const nome = document.createElement("span");
+    nome.className = "nome";
+    nome.textContent = (opts.host ? "👑 " : "") + opts.nome + (opts.eu ? " (você)" : "");
+    li.appendChild(nome);
+    if (opts.est) {
+      const est = document.createElement("span");
+      est.className = "est" + (opts.estOk ? " ok" : "");
+      est.textContent = opts.est;
+      li.appendChild(est);
+    }
+    if (typeof opts.pts === "number") {
+      const pt = document.createElement("span");
+      pt.className = "pts";
+      pt.textContent = opts.pts;
+      li.appendChild(pt);
+    }
+    return li;
+  }
+
+  function textoEspectadores(ps) {
+    const es = espectadores(ps);
+    if (!es.length) return "";
+    const nomes = es.map(function (p) { return nomeDe(p); }).join(", ");
+    return "👁️ Assistindo (" + es.length + "): " + nomes;
+  }
+
+  function renderizarListas(ps) {
+    const eu = ps.find(function (p) { return p.isMe && p.sameTab; });
+    const h = hostAtual(ps);
+    const hostPeer = h ? h.peer : (souHost && eu ? eu.peer : null);
+    const js = jogadores(ps);
+
+    // Sala de espera
+    if ($("telaSala").classList.contains("ativa")) {
+      const lista = $("salaLista");
+      lista.textContent = "";
+      js.forEach(function (p) {
+        lista.appendChild(liItem({ nome: nomeDe(p), eu: eu && p.peer === eu.peer, host: p.peer === hostPeer }));
+      });
+      $("salaTitulo").textContent = "Jogadores (" + js.length + ")";
+      $("salaEspect").textContent = textoEspectadores(ps);
+      // O anfitrião que só assiste também aparece como espectador, com a coroa na faixa abaixo
+      if (!js.length) {
+        const vazio = document.createElement("li");
+        vazio.textContent = "Ninguém jogando ainda";
+        vazio.style.color = "var(--suave)";
+        lista.appendChild(vazio);
+      }
+      $("btnIniciar").disabled = js.length < 1;
+    }
+
+    // Placar durante o jogo
+    if ($("telaJogo").classList.contains("ativa")) {
+      const rank = ordenarRanking(js);
+      const ul = $("rankingJogo");
+      ul.textContent = "";
+      rank.forEach(function (p, i) {
+        let est = "", ok = false;
+        if (fase === "responder") {
+          ok = p.presence.resp === qiAtual;
+          est = ok ? "respondeu ✓" : "pensando…";
+        }
+        ul.appendChild(liItem({
+          pos: i + 1, nome: nomeDe(p), eu: eu && p.peer === eu.peer, host: p.peer === hostPeer,
+          est: est, estOk: ok, pts: ptsDe(p)
+        }));
+      });
+      $("espectJogo").textContent = textoEspectadores(ps);
+    }
+
+    // Classificação final
+    if ($("telaFinal").classList.contains("ativa")) {
+      const rank = ordenarRanking(js);
+      const ul = $("rankingFinal");
+      ul.textContent = "";
+      const medalhas = ["🥇", "🥈", "🥉"];
+      rank.forEach(function (p, i) {
+        ul.appendChild(liItem({
+          pos: medalhas[i] || (i + 1), nome: nomeDe(p), eu: eu && p.peer === eu.peer, host: p.peer === hostPeer, pts: ptsDe(p)
+        }));
+      });
+      $("espectFinal").textContent = textoEspectadores(ps);
+    }
+  }
+
+  /* =====================================================
+     ANFITRIÃO (controla as fases do jogo)
+     ===================================================== */
+  function setFase(f, qi) {
+    if (qi === undefined) qi = qiAtual;
+    seqHost = Math.max(seqHost, seqObs) + 1;
+    const j = { seed: semente, qi: qi, fase: f, seq: seqHost };
+    pres({ jogo: j });
+    aplicarJogo(j);
+  }
+
+  function iniciarJogo() {
+    if (!souHost) return;
+    semente = (Math.random() * 4294967296) >>> 0;
+    setFase("ler", 0);
+  }
+
+  function avancar() {
+    if (qiAtual + 1 >= TOTAL) setFase("fim", qiAtual);
+    else setFase("ler", qiAtual + 1);
+  }
+
+  function todosResponderam() {
+    const js = jogadores(pessoas());
+    if (!js.length) return false;
+    return js.every(function (p) { return p.presence.resp === qiAtual; });
+  }
+
+  function hostTick() {
+    if (!souHost || !sala) return;
+    const dt = Date.now() - tFase;
+    if (fase === "ler") {
+      if (dt >= leituraMs(qiAtual)) setFase("responder");
+    } else if (fase === "responder") {
+      if (dt >= TEMPO_MS + 600 || (dt > 1500 && todosResponderam())) setFase("revelar");
+    } else if (fase === "revelar") {
+      if (dt >= REVELAR_MS) avancar();
+    }
+  }
+
+  function tornarHost() {
+    souHost = true;
+    seqHost = seqObs;
+    pres({ host: true, hostDesde: Date.now(), senha: senhaHash });
+    if (fase === "lobby" || qiAtual < 0) {
+      setFase("lobby", -1);
+    } else {
+      // continua de onde parou, reiniciando o relógio da fase atual
+      setFase(fase, qiAtual);
+    }
+    aviso("Você agora é o anfitrião da sala");
+  }
+
+  function vigiaHost() {
+    if (!sala || !verificado) return;
+    const ps = pessoas();
+    if (hostAtual(ps) || souHost || !viuHost) return;
+    if (!hostSumiuEm) { hostSumiuEm = Date.now(); return; }
+    if (Date.now() - hostSumiuEm > 2500) {
+      const cand = ps.slice().sort(function (a, b) {
+        return ((a.presence.entrou || 0) - (b.presence.entrou || 0)) || a.peer.localeCompare(b.peer);
+      })[0];
+      if (cand && cand.isMe && cand.sameTab) tornarHost();
+    }
+  }
+
+  /* =====================================================
+     APLICAR O ESTADO DO JOGO (todos os participantes)
+     ===================================================== */
+  function aoMudarPeers() {
+    if (!sala || !verificado) return;
+    const ps = pessoas();
+    const h = hostAtual(ps);
+    const eu = ps.find(function (p) { return p.isMe && p.sameTab; });
+
+    if (h) {
+      viuHost = true;
+      hostSumiuEm = 0;
+      if (souHost && eu && h.peer !== eu.peer) {
+        souHost = false;
+        pres({ host: null, hostDesde: null });
+      }
+      if (!souHost && h.presence.jogo) aplicarJogo(h.presence.jogo);
+    }
+    renderizarListas(ps);
+    atualizarBotoesHost();
+  }
+
+  function resetarPartidaLocal() {
+    pts = 0;
+    acertos = 0;
+    pontuadas.clear();
+    escolha = -1;
+    confirmada = false;
+    pres({ pts: 0, resp: -1 });
+  }
+
+  function aplicarJogo(j) {
+    if (!j || j.seq === seqObs) return;
+    seqObs = j.seq;
+    semente = j.seed;
+    qiAtual = j.qi;
+    fase = j.fase;
+    tFase = Date.now();
+
+    if (fase === "lobby") {
+      resetarPartidaLocal();
+      atual = null;
+      mostrar("telaSala");
+    } else if (fase === "ler") {
+      if (qiAtual === 0) resetarPartidaLocal();
+      prepararPergunta(qiAtual);
+      mostrar("telaJogo");
+    } else if (fase === "responder") {
+      if (!atual || atual.qi !== qiAtual) prepararPergunta(qiAtual);
+      mostrar("telaJogo");
+      leituraCompleta();
+      iniciarResposta();
+    } else if (fase === "revelar") {
+      if (!atual || atual.qi !== qiAtual) prepararPergunta(qiAtual);
+      mostrar("telaJogo");
+      leituraCompleta();
+      revelar();
+    } else if (fase === "fim") {
+      mostrarFinal();
+    }
+    atualizarCabecalho();
+    atualizarBotoesHost();
+    renderizarListas(pessoas());
+  }
+
+  /* =====================================================
+     PERGUNTA: leitura letra por letra
+     ===================================================== */
+  const elPergunta = $("textoPergunta");
+  const elOpcoes = $("opcoes");
+  let elsOpcao = [];
+
+  function parteTexto(el, texto, n, ativo) {
+    const v = el.querySelector(".v");
+    const i = el.querySelector(".i");
+    n = Math.max(0, Math.min(texto.length, Math.floor(n)));
+    v.textContent = texto.slice(0, n);
+    i.textContent = texto.slice(n);
+    el.classList.toggle("digitando", !!ativo && n < texto.length);
+  }
+
+  function criarTexto(el, texto) {
+    el.textContent = "";
+    const v = document.createElement("span"); v.className = "v";
+    const i = document.createElement("span"); i.className = "i"; i.textContent = texto;
+    el.appendChild(v); el.appendChild(i);
+  }
+
+  function prepararPergunta(qi) {
+    atual = montar(qi, semente);
+    escolha = -1;
+    confirmada = false;
+
+    $("emoji").textContent = atual.p.emoji;
+    $("objeto").textContent = atual.p.objeto;
+    criarTexto(elPergunta, atual.p.pergunta);
+
+    elOpcoes.textContent = "";
+    elsOpcao = [];
+    atual.textos.forEach(function (texto, i) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "opcao oculta";
+      b.disabled = true;
+      const letra = document.createElement("span"); letra.className = "letra"; letra.textContent = LETRAS[i];
+      const t = document.createElement("span"); t.className = "texto";
+      criarTexto(t, texto);
+      b.appendChild(letra); b.appendChild(t);
+      b.addEventListener("click", function () { selecionar(i); });
+      elOpcoes.appendChild(b);
+      elsOpcao.push(b);
+    });
+
+    const fb = $("feedback");
+    fb.className = "feedback";
+    fb.textContent = "";
+    $("btnPular").style.display = "none";
+    $("btnResponder").style.display = meuModo === "jogador" ? "block" : "none";
+    $("btnResponder").disabled = true;
+    $("btnResponder").textContent = "RESPONDER";
+    $("dicaJogo").textContent = meuModo === "jogador" ? "Leia com calma. As alternativas aparecem uma por vez." : "Acompanhe a leitura. Os jogadores respondem depois.";
+    $("faixaEspect").classList.toggle("mostrar", meuModo === "espectador");
+    $("topoTempo").className = "pill";
+    $("topoTempo").textContent = "📖 Lendo";
+    const tf = $("tempoFill");
+    tf.className = "lendo";
+    tf.style.width = "100%";
+  }
+
+  function atualizarLeitura() {
+    if (!atual) return;
+    const e = Date.now() - tFase;
+    const L = linhaDoTempo(atual);
+    parteTexto(elPergunta, atual.p.pergunta, (e - L.p[0]) / VEL_PERGUNTA, e >= L.p[0] && e < L.p[1]);
+    for (let i = 0; i < 4; i++) {
+      const el = elsOpcao[i];
+      if (!el) continue;
+      const a = L.o[i][0], b = L.o[i][1];
+      if (e >= a) el.classList.remove("oculta");
+      parteTexto(el.querySelector(".texto"), atual.textos[i], (e - a) / VEL_OPCAO, e >= a && e < b);
+    }
+  }
+
+  function leituraCompleta() {
+    if (!atual) return;
+    parteTexto(elPergunta, atual.p.pergunta, atual.p.pergunta.length, false);
+    elsOpcao.forEach(function (el, i) {
+      el.classList.remove("oculta");
+      parteTexto(el.querySelector(".texto"), atual.textos[i], atual.textos[i].length, false);
+    });
+  }
+
+  /* =====================================================
+     RESPONDER (selecionar + apertar o botão RESPONDER)
+     ===================================================== */
+  function iniciarResposta() {
+    const jog = meuModo === "jogador";
+    elsOpcao.forEach(function (b) { b.disabled = !jog || confirmada; });
+    $("btnResponder").style.display = jog ? "block" : "none";
+    $("btnResponder").disabled = !jog || confirmada || escolha < 0;
+    $("dicaJogo").textContent = jog
+      ? (confirmada ? "Resposta enviada. Aguarde os outros." : "Toque numa alternativa e aperte RESPONDER.")
+      : "Os jogadores estão respondendo…";
+  }
+
+  function tempoRestante() {
+    return Math.max(0, TEMPO_MS - (Date.now() - tFase));
+  }
+
+  function selecionar(i) {
+    if (fase !== "responder" || meuModo !== "jogador" || confirmada || tempoRestante() <= 0) return;
+    escolha = i;
+    elsOpcao.forEach(function (b, k) { b.classList.toggle("sel", k === i); });
+    $("btnResponder").disabled = false;
+  }
+
+  function confirmarResposta() {
+    if (fase !== "responder" || meuModo !== "jogador" || confirmada || escolha < 0 || tempoRestante() <= 0) return;
+    confirmada = true; // trava contra toques repetidos
+    elsOpcao.forEach(function (b) { b.disabled = true; });
+    $("btnResponder").disabled = true;
+    $("btnResponder").textContent = "RESPOSTA ENVIADA ✓";
+    $("dicaJogo").textContent = "Resposta enviada. Aguarde os outros.";
+    pres({ resp: qiAtual });
+  }
+
+  function marcar(btn, simbolo) {
+    if (btn.querySelector(".marca")) return;
+    const m = document.createElement("span");
+    m.className = "marca";
+    m.textContent = simbolo;
+    btn.appendChild(m);
+  }
+
+  function revelar() {
+    const fb = $("feedback");
+    $("btnResponder").style.display = "none";
+    $("tempoFill").style.width = "0%";
+    elsOpcao.forEach(function (b) { b.disabled = true; });
+    $("topoTempo").className = "pill";
+    $("topoTempo").textContent = "✔ Resultado";
+
+    if (meuModo === "jogador") {
+      const correta = atual.corretaPos;
+      elsOpcao[correta].classList.add("correta");
+      marcar(elsOpcao[correta], "✅");
+
+      if (confirmada && escolha === correta) {
+        if (!pontuadas.has(qiAtual)) {
+          pontuadas.add(qiAtual);
+          pts += PONTOS;
+          acertos++;
+          pres({ pts: pts });
+        }
+        fb.className = "feedback mostrar acerto";
+        fb.textContent = "Correto! +" + PONTOS + " pontos";
+      } else if (confirmada) {
+        elsOpcao[escolha].classList.remove("sel");
+        elsOpcao[escolha].classList.add("errada");
+        marcar(elsOpcao[escolha], "❌");
+        fb.className = "feedback mostrar erro";
+        fb.textContent = "Resposta errada. A correta é a " + LETRAS[correta] + ".";
+      } else {
+        fb.className = "feedback mostrar info";
+        fb.textContent = "Sem resposta enviada. A correta é a " + LETRAS[correta] + ".";
+      }
+      elsOpcao.forEach(function (b, i) { if (i !== correta && i !== escolha) b.classList.add("neutra"); });
+      $("dicaJogo").textContent = "";
+    } else {
+      elsOpcao.forEach(function (b) { b.classList.remove("sel"); });
+      fb.className = "feedback mostrar neutro";
+      fb.textContent = "Os jogadores viram o resultado. Confira o placar abaixo.";
+      $("dicaJogo").textContent = "";
+    }
+    atualizarCabecalho();
+  }
+
+  function atualizarCabecalho() {
+    if (qiAtual < 0) return;
+    $("topoContador").textContent = "Pergunta " + (qiAtual + 1) + " de " + TOTAL;
+    $("topoPontos").textContent = meuModo === "jogador" ? ("⭐ " + pts) : "👁️ Assistindo";
+    const feitas = qiAtual + ((fase === "revelar" || fase === "fim") ? 1 : 0);
+    $("progressoFill").style.width = (feitas / TOTAL * 100) + "%";
+    $("progresso").setAttribute("aria-valuenow", String(feitas));
+    $("progresso").setAttribute("aria-valuemax", String(TOTAL));
+  }
+
+  function atualizarBotoesHost() {
+    $("btnIniciar").style.display = souHost ? "block" : "none";
+    $("salaAguarde").textContent = souHost ? "" : "Aguardando o anfitrião começar o jogo…";
+    $("btnPular").style.display = (souHost && fase === "revelar") ? "block" : "none";
+    $("btnNovamente").style.display = souHost ? "block" : "none";
+    $("aguardeNovamente").textContent = souHost ? "" : "Aguardando o anfitrião iniciar uma nova partida…";
+  }
+
+  /* =====================================================
+     RELÓGIO LOCAL (leitura e contagem regressiva)
+     ===================================================== */
+  function tick() {
+    if (!$("telaJogo").classList.contains("ativa") || !atual) return;
+    if (fase === "ler") {
+      atualizarLeitura();
+    } else if (fase === "responder") {
+      const rest = tempoRestante();
+      const seg = Math.ceil(rest / 1000);
+      $("topoTempo").textContent = "⏱️ " + seg + "s";
+      $("topoTempo").classList.toggle("urgente", seg <= 3);
+      const tf = $("tempoFill");
+      tf.style.width = (rest / TEMPO_MS * 100) + "%";
+      tf.className = seg <= 3 ? "baixo" : (seg <= 5 ? "medio" : "");
+      if (rest <= 0 && meuModo === "jogador" && !confirmada) {
+        elsOpcao.forEach(function (b) { b.disabled = true; });
+        $("btnResponder").disabled = true;
+        $("dicaJogo").textContent = "Tempo esgotado. Aguarde o resultado…";
+      }
+    }
+  }
+
+  /* =====================================================
+     TELA FINAL
+     ===================================================== */
+  function mostrarFinal() {
+    mostrar("telaFinal");
+    if (meuModo === "jogador") {
+      const pct = Math.round(pts / MAXIMO * 100);
+      const msg = mensagemDesempenho(pct);
+      $("seloFinal").textContent = msg.selo;
+      $("tituloFinal").textContent = "Fim de jogo!";
+      $("placarFinal").textContent = "Pontuação: " + pts + "/" + MAXIMO;
+      $("detalheFinal").textContent = "Você acertou " + acertos + " de " + TOTAL + " perguntas (" + pct + "%).";
+      $("mensagemFinal").textContent = msg.texto;
+    } else {
+      $("seloFinal").textContent = "👁️";
+      $("tituloFinal").textContent = "Fim da partida";
+      $("placarFinal").textContent = "";
+      $("detalheFinal").textContent = "Você assistiu a esta partida. Veja a classificação final.";
+      $("mensagemFinal").textContent = "A pontuação máxima era " + MAXIMO + " pontos.";
+    }
+  }
+
+  /* =====================================================
+     ENTRAR / CRIAR SALA
+     ===================================================== */
+  function conectarSala(s, modo) {
+    sala = s;
+    verificado = false;
+    meuModo = modo;
+    viuHost = false;
+    hostSumiuEm = 0;
+    seqObs = -1;
+    seqHost = 0;
+    souHost = false;
+    fase = "lobby";
+    atual = null;
+    qiAtual = -1;
+    pts = 0; acertos = 0; pontuadas.clear(); escolha = -1; confirmada = false;
+    desinscrever = sala.onPeers(aoMudarPeers);
+    sala.onErro(function (m) { aviso(m); });
+    pres({ nome: meuNome, modo: modo, entrou: Date.now(), pts: 0, resp: -1, hb: Date.now() });
+  }
+
+  const MSG_REDE = "Não foi possível conectar ao servidor. Verifique a internet.";
+  const MSG_REGRAS = "O banco de dados recusou o acesso. Ajuste as regras do Firebase.";
+
+  async function lerSalaRemota(cod) {
+    const r = await fetch(DB_URL + "/salas/" + cod + ".json", { cache: "no-store" });
+    if (r.status === 401 || r.status === 403) throw new Error("regras");
+    if (!r.ok) throw new Error("http");
+    return r.json();
+  }
+
+  function erroDeRede(e) {
+    return { ok: false, erro: (e && e.message === "regras") ? MSG_REGRAS : MSG_REDE };
+  }
+
+  function hostRemoto(d) {
+    const js = d && d.jogadores;
+    if (!js) return null;
+    const hs = Object.keys(js).map(function (k) { return js[k]; }).filter(function (x) { return x && x.host === true; });
+    hs.sort(function (a, b) { return (a.hostDesde || 0) - (b.hostDesde || 0); });
+    return hs[0] || null;
+  }
+
+  async function criarSala(modo) {
+    for (let tentativa = 0; tentativa < 8; tentativa++) {
+      const cod = gerarCodigo();
+      let existente;
+      try { existente = await lerSalaRemota(cod); } catch (e) { return erroDeRede(e); }
+      if (existente !== null) continue; // código já usado: sorteia outro
+      conectarSala(criarSalaFirebase(cod, MEU_ID), modo);
+      codigo = cod;
+      senhaTexto = senhaPendente;
+      senhaHash = hashSenha(cod, senhaPendente);
+      verificado = true;
+      souHost = true;
+      viuHost = true;
+      pres({ host: true, hostDesde: Date.now(), senha: senhaHash });
+      $("salaCodigo").textContent = codigo;
+      $("salaSenha").textContent = "Senha: " + senhaTexto;
+      setFase("lobby", -1);
+      return { ok: true };
+    }
+    return { ok: false, erro: "Não consegui criar uma sala. Tente de novo." };
+  }
+
+  async function entrarNaSala(cod, modo) {
+    let dadosSala;
+    try { dadosSala = await lerSalaRemota(cod); } catch (e) { return erroDeRede(e); }
+    const hostNo = hostRemoto(dadosSala);
+    if (!hostNo) return { ok: false, erro: "Sala não encontrada. Confira o código." };
+    const hash = hashSenha(cod, senhaPendente);
+    if (!hostNo.senha || hostNo.senha !== hash) return { ok: false, erro: "Senha incorreta." };
+
+    conectarSala(criarSalaFirebase(cod, MEU_ID), modo);
+
+    // confirma que o anfitrião está online: o sinal de vida dele precisa mudar
+    const t0 = Date.now();
+    let vivo = false;
+    while (Date.now() - t0 < 7000) {
+      const h = hostAtual(pessoas());
+      if (h && h.presence.hb !== hostNo.hb) { vivo = true; break; }
+      await esperar(250);
+    }
+    if (!vivo) {
+      await sairDaSalaSilencioso();
+      return { ok: false, erro: "Sala não encontrada. O anfitrião não está mais online." };
+    }
+
+    codigo = cod;
+    senhaHash = hash;
+    senhaTexto = "";
+    verificado = true;
+    $("salaCodigo").textContent = codigo;
+    $("salaSenha").textContent = "";
+    aoMudarPeers();
+    return { ok: true };
+  }
+
+  async function sairDaSalaSilencioso() {
+    const s = sala;
+    sala = null;
+    if (desinscrever) { try { desinscrever(); } catch (e) {} desinscrever = null; }
+    souHost = false; viuHost = false; hostSumiuEm = 0; seqObs = -1; fase = "lobby"; atual = null; qiAtual = -1;
+    verificado = false; senhaHash = ""; senhaTexto = "";
+    try { if (s) await s.leave(); } catch (e) {}
+  }
+
+  async function sair() {
+    await sairDaSalaSilencioso();
+    codigo = "";
+    $("msgInicio").textContent = "";
+    $("salaSenha").textContent = "";
+    mostrar("telaInicio");
+  }
+
+  /* =====================================================
+     EVENTOS DA INTERFACE
+     ===================================================== */
+  const inpNome = $("inpNome");
+  const inpCodigo = $("inpCodigo");
+  const inpSenha = $("inpSenha");
+  const msgInicio = $("msgInicio");
+
+  inpNome.value = lerNome();
+  $("infoTotal").textContent = String(TOTAL);
+
+  inpCodigo.addEventListener("input", function () {
+    inpCodigo.value = inpCodigo.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
+  });
+
+  function lerNomeCampo() {
+    meuNome = nomeLimpo(inpNome.value);
+    inpNome.value = meuNome;
+    guardarNome(meuNome);
+  }
+
+  function irParaPapel(acao, cod) {
+    lerNomeCampo();
+    acaoPendente = acao;
+    codigoPendente = cod || "";
+    senhaPendente = inpSenha.value.trim();
+    $("msgPapel").textContent = "";
+    $("msgPapel").className = "msg";
+    $("papelInfo").textContent = acao === "criar"
+      ? "Você vai criar uma nova sala e será o anfitrião."
+      : "Entrando na sala " + codigoPendente + ".";
+    $("btnPapelJogar").disabled = false;
+    $("btnPapelAssistir").disabled = false;
+    mostrar("telaPapel");
+  }
+
+  $("btnCriar").addEventListener("click", function () {
+    if (inpSenha.value.trim().length < 3) { msgInicio.textContent = "Escolha uma senha com pelo menos 3 caracteres."; return; }
+    msgInicio.textContent = "";
+    irParaPapel("criar");
+  });
+
+  $("btnEntrar").addEventListener("click", function () {
+    const cod = inpCodigo.value.trim().toUpperCase();
+    if (cod.length !== 4) { msgInicio.textContent = "Digite o código de 4 caracteres da sala."; return; }
+    if (!inpSenha.value.trim()) { msgInicio.textContent = "Digite a senha da sala."; return; }
+    msgInicio.textContent = "";
+    irParaPapel("entrar", cod);
+  });
+
+  $("btnPapelVoltar").addEventListener("click", function () { mostrar("telaInicio"); });
+
+  async function escolherPapel(modo) {
+    const msg = $("msgPapel");
+    msg.className = "msg ok";
+    msg.textContent = acaoPendente === "criar" ? "Criando sala…" : "Entrando na sala…";
+    $("btnPapelJogar").disabled = true;
+    $("btnPapelAssistir").disabled = true;
+
+    const r = acaoPendente === "criar" ? await criarSala(modo) : await entrarNaSala(codigoPendente, modo);
+    if (!r.ok) {
+      msg.className = "msg";
+      msg.textContent = r.erro;
+      $("btnPapelJogar").disabled = false;
+      $("btnPapelAssistir").disabled = false;
+    }
+  }
+
+  $("btnPapelJogar").addEventListener("click", function () { escolherPapel("jogador"); });
+  $("btnPapelAssistir").addEventListener("click", function () { escolherPapel("espectador"); });
+
+  $("btnCopiar").addEventListener("click", function () {
+    const btn = $("btnCopiar");
+    try {
+      navigator.clipboard.writeText(codigo).then(function () {
+        btn.textContent = "COPIADO ✓";
+        setTimeout(function () { btn.textContent = "COPIAR CÓDIGO"; }, 1800);
+      }, function () { aviso("Anote o código: " + codigo); });
+    } catch (e) { aviso("Anote o código: " + codigo); }
+  });
+
+  $("btnIniciar").addEventListener("click", function () {
+    if (!souHost) return;
+    if (jogadores(pessoas()).length < 1) { aviso("É preciso ao menos um jogador para começar."); return; }
+    iniciarJogo();
+  });
+
+  $("btnResponder").addEventListener("click", confirmarResposta);
+  $("btnPular").addEventListener("click", function () { if (souHost && fase === "revelar") avancar(); });
+
+  $("btnNovamente").addEventListener("click", function () { if (souHost) iniciarJogo(); });
+
+  $("btnSairSala").addEventListener("click", sair);
+  $("btnSairFinal").addEventListener("click", sair);
+
+  // Navegadores sem EventSource/fetch não conseguem usar as salas
+  if (typeof EventSource === "undefined" || typeof fetch === "undefined") {
+    $("avisoOnline").classList.add("mostrar");
+    $("btnCriar").disabled = true;
+    $("btnEntrar").disabled = true;
+  }
+
+  // Ao fechar a página, sai da sala (o sinal de vida recria o registro se a página voltar)
+  window.addEventListener("pagehide", function () { if (sala && sala.sairRapido) sala.sairRapido(); });
+
+  /* ---------- Tema claro / escuro ---------- */
+  const btnTema = $("btnTema");
+  function temaEfetivo() {
+    const a = document.documentElement.getAttribute("data-theme");
+    if (a) return a;
+    return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+  }
+  function iconeTema() {
+    const escuro = temaEfetivo() === "dark";
+    btnTema.textContent = escuro ? "☀️" : "🌙";
+    btnTema.setAttribute("aria-label", escuro ? "Mudar para o modo claro" : "Mudar para o modo escuro");
+  }
+  try {
+    const t = localStorage.getItem("descarte-tema");
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {}
+  iconeTema();
+  btnTema.addEventListener("click", function () {
+    const novo = temaEfetivo() === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", novo);
+    try { localStorage.setItem("descarte-tema", novo); } catch (e) {}
+    iconeTema();
+  });
+  try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", iconeTema); } catch (e) {}
+
+  setInterval(tick, 40);
+  setInterval(hostTick, 200);
+  setInterval(vigiaHost, 1000);
+})();
+</script>
+</body>
+</html>
