@@ -223,6 +223,36 @@
   .placar { font-size: 2.3rem; font-weight: 900; color: var(--verde); margin: 4px 0; font-variant-numeric: tabular-nums; }
   .mensagem { background: var(--card2); border-radius: 16px; padding: 14px; margin: 14px 0 6px; }
 
+  .modal-fundo {
+    position: fixed; inset: 0; z-index: 30; display: none; align-items: flex-end; justify-content: center;
+    background: rgba(0, 0, 0, .55); padding: 0;
+  }
+  .modal-fundo.aberto { display: flex; animation: entrar .2s ease both; }
+  .modal {
+    width: 100%; max-width: 540px; max-height: 88vh; max-height: 88dvh; display: flex; flex-direction: column;
+    background: var(--card); color: var(--txt); border: 1px solid var(--borda); border-radius: 24px 24px 0 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, .35);
+  }
+  .modal-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 18px 10px; }
+  .modal-topo h2 { margin: 0; font-size: 1.25rem; }
+  .modal-x {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--borda); background: var(--card2);
+    color: var(--txt); font-size: 1.1rem; cursor: pointer; flex-shrink: 0; touch-action: manipulation;
+  }
+  .modal-x:focus-visible { outline: 3px solid #f2c94c; outline-offset: 2px; }
+  .modal-corpo { overflow-y: auto; padding: 4px 18px 8px; -webkit-overflow-scrolling: touch; }
+  .passo { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--borda); }
+  .passo:last-child { border-bottom: none; }
+  .passo .n {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--verde); color: var(--on-verde);
+    font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: .92rem;
+  }
+  .passo h3 { font-size: 1rem; margin-bottom: 3px; color: var(--verde); }
+  .passo p { font-size: .94rem; color: var(--txt); }
+  .passo p + p { margin-top: 4px; }
+  .modal-rodape { padding: 10px 18px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .modal-rodape .btn { margin-top: 0; }
+
   #toast {
     position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px);
     background: var(--card2); border: 1px solid var(--verde); color: var(--txt); padding: 10px 16px; border-radius: 999px;
@@ -254,6 +284,8 @@
       <div class="selo" aria-hidden="true">♻️</div>
       <h1 id="titulo">Descarte Certo</h1>
       <p class="texto">Quiz online sobre lixo eletrônico, reciclagem e descarte correto. Crie uma sala e chame a turma!</p>
+
+      <button type="button" class="btn sec peq" id="btnComoJogar" aria-haspopup="dialog" style="margin:4px 0 0">COMO JOGAR ❓</button>
 
       <label class="rotulo" for="inpNome">Seu nome</label>
       <input type="text" id="inpNome" maxlength="16" placeholder="Como quer ser chamado?" autocomplete="off">
@@ -374,6 +406,46 @@
   </section>
 
 </main>
+<div class="modal-fundo" id="modalAjuda" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloAjuda">
+    <div class="modal-topo">
+      <h2 id="tituloAjuda">Como jogar ❓</h2>
+      <button type="button" class="modal-x" id="btnFecharAjuda" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-corpo">
+      <div class="passo"><span class="n">1</span><div>
+        <h3>Criar a sala</h3>
+        <p>Digite seu nome, escolha uma senha (mínimo 3 caracteres) e toque em <b>CRIAR SALA</b>.</p>
+        <p>Escolha se quer <b>JOGAR</b> ou <b>ASSISTIR</b>. O código da sala aparece na tela: passe o <b>código</b> e a <b>senha</b> para os colegas.</p>
+      </div></div>
+      <div class="passo"><span class="n">2</span><div>
+        <h3>Entrar numa sala</h3>
+        <p>No outro aparelho, digite seu nome, a <b>senha</b> e o <b>código</b> da sala. Toque em <b>ENTRAR NA SALA</b> e escolha entre jogar ou assistir.</p>
+        <p>Se aparecer "Senha incorreta" ou "Sala não encontrada", confira os dados com o criador da sala.</p>
+      </div></div>
+      <div class="passo"><span class="n">3</span><div>
+        <h3>Começar a partida</h3>
+        <p>Todos esperam na sala de espera. Só o criador da sala (👑 anfitrião) aperta <b>COMEÇAR JOGO</b>, e é preciso ter pelo menos um jogador.</p>
+      </div></div>
+      <div class="passo"><span class="n">4</span><div>
+        <h3>Responder as perguntas</h3>
+        <p>A pergunta aparece letra por letra e depois as alternativas, uma de cada vez. Leia tudo com calma.</p>
+        <p>Quando todas aparecerem, você tem <b>10 segundos</b>: toque numa alternativa e aperte <b>RESPONDER</b>. Se o tempo acabar sem apertar, a questão conta como errada.</p>
+        <p>Cada acerto vale <b>10 pontos</b>. Depois de cada pergunta, a resposta certa é mostrada para quem está jogando.</p>
+      </div></div>
+      <div class="passo"><span class="n">5</span><div>
+        <h3>Modo espectador</h3>
+        <p>Quem escolhe <b>ASSISTIR</b> vê a pergunta, as alternativas e os pontos de cada jogador ao vivo, mas não responde e não vê qual é a resposta certa.</p>
+      </div></div>
+      <div class="passo"><span class="n">6</span><div>
+        <h3>Fim do jogo</h3>
+        <p>Ao terminar as perguntas, aparecem sua pontuação (por exemplo, 120/250), uma mensagem de desempenho e a classificação de todos. O anfitrião pode tocar em <b>JOGAR NOVAMENTE</b>.</p>
+        <p>Dica: o botão ☀️/🌙 no canto da tela troca entre o modo claro e o escuro.</p>
+      </div></div>
+    </div>
+    <div class="modal-rodape"><button type="button" class="btn" id="btnEntendi">ENTENDI</button></div>
+  </div>
+</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -1491,6 +1563,30 @@
 
   // Ao fechar a página, sai da sala (o sinal de vida recria o registro se a página voltar)
   window.addEventListener("pagehide", function () { if (sala && sala.sairRapido) sala.sairRapido(); });
+
+  /* ---------- Como jogar ---------- */
+  const modalAjuda = $("modalAjuda");
+  let focoAntes = null;
+  function abrirAjuda() {
+    focoAntes = document.activeElement;
+    modalAjuda.classList.add("aberto");
+    modalAjuda.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    $("btnFecharAjuda").focus();
+  }
+  function fecharAjuda() {
+    modalAjuda.classList.remove("aberto");
+    modalAjuda.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    if (focoAntes && focoAntes.focus) focoAntes.focus();
+  }
+  $("btnComoJogar").addEventListener("click", abrirAjuda);
+  $("btnFecharAjuda").addEventListener("click", fecharAjuda);
+  $("btnEntendi").addEventListener("click", fecharAjuda);
+  modalAjuda.addEventListener("click", function (e) { if (e.target === modalAjuda) fecharAjuda(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && modalAjuda.classList.contains("aberto")) fecharAjuda();
+  });
 
   /* ---------- Tema claro / escuro ---------- */
   const btnTema = $("btnTema");
