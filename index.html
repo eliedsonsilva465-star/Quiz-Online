@@ -253,6 +253,21 @@
   .modal-rodape { padding: 10px 18px calc(16px + env(safe-area-inset-bottom, 0px)); }
   .modal-rodape .btn { margin-top: 0; }
 
+  .feedback { white-space: pre-line; }
+  #detalheFinal { white-space: pre-line; line-height: 1.6; }
+  .objeto.desafio { background: var(--alerta-fundo); color: var(--alerta); }
+  .curiosidade {
+    display: none; margin-top: 12px; padding: 12px 14px; border-radius: 14px;
+    background: var(--card2); border: 1px solid var(--borda); font-size: .94rem; text-align: left;
+  }
+  .curiosidade.mostrar { display: block; animation: entrar .3s ease both; }
+  .curiosidade b { display: block; color: var(--verde); margin-bottom: 3px; }
+  .campeao {
+    margin-top: 14px; padding: 12px 14px; border-radius: 14px; font-weight: 800;
+    background: var(--alerta-fundo); color: var(--alerta);
+  }
+  .campeao:empty { display: none; }
+
   #toast {
     position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px);
     background: var(--card2); border: 1px solid var(--verde); color: var(--txt); padding: 10px 16px; border-radius: 999px;
@@ -309,6 +324,8 @@
         <li><span aria-hidden="true">❓</span><span><b id="infoTotal">25</b> perguntas, uma de cada vez</span></li>
         <li><span aria-hidden="true">⏱️</span><span>10 segundos para responder, depois de ler tudo</span></li>
         <li><span aria-hidden="true">⭐</span><span>10 pontos por acerto</span></li>
+        <li><span aria-hidden="true">⚡</span><span>Bônus por resposta rápida e por acertos seguidos</span></li>
+        <li><span aria-hidden="true">♻️</span><span>Desafio de descarte a cada 5 perguntas</span></li>
       </ul>
     </div>
   </section>
@@ -376,7 +393,8 @@
       <button type="button" class="btn" id="btnResponder" disabled>RESPONDER</button>
       <p class="dica" id="dicaJogo"></p>
       <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-      <button type="button" class="btn sec peq" id="btnPular" style="display:none">PRÓXIMA PERGUNTA</button>
+      <div class="curiosidade" id="curiosidade" aria-live="polite"><b></b><p></p></div>
+      <button type="button" class="btn sec peq" id="btnPular" style="display:none">CONTINUAR ➜</button>
     </div>
 
     <div class="placar-box">
@@ -394,6 +412,8 @@
       <div class="placar" id="placarFinal"></div>
       <div class="suave" id="detalheFinal"></div>
       <div class="mensagem" id="mensagemFinal"></div>
+      <div class="campeao" id="campeao"></div>
+      <div class="suave" id="minhaPos" style="margin-top:8px"></div>
 
       <div class="lista-titulo">Classificação</div>
       <ul class="lista" id="rankingFinal"></ul>
@@ -431,16 +451,25 @@
         <h3>Responder as perguntas</h3>
         <p>A pergunta aparece letra por letra e depois as alternativas, uma de cada vez. Leia tudo com calma.</p>
         <p>Quando todas aparecerem, você tem <b>10 segundos</b>: toque numa alternativa e aperte <b>RESPONDER</b>. Se o tempo acabar sem apertar, a questão conta como errada.</p>
-        <p>Cada acerto vale <b>10 pontos</b>. Depois de cada pergunta, a resposta certa é mostrada para quem está jogando.</p>
+        <p>Cada acerto vale <b>10 pontos</b>. Depois de cada pergunta, quem joga vê a resposta certa e uma curiosidade 💡.</p>
       </div></div>
       <div class="passo"><span class="n">5</span><div>
+        <h3>Bônus</h3>
+        <p>⚡ <b>Velocidade:</b> acertar em até 3 segundos dá +5 pontos; em até 6 segundos, +2.</p>
+        <p>🔥 <b>Sequência:</b> o 2º acerto seguido dá +2, o 3º dá +4, e assim por diante, até +10. Errar zera a sequência.</p>
+      </div></div>
+      <div class="passo"><span class="n">6</span><div>
+        <h3>Desafio de descarte</h3>
+        <p>A cada 5 perguntas aparece um objeto. Escolha o local certo: <b>Lixo comum</b>, <b>Ponto de coleta</b> ou <b>Compostagem</b>. Acertou, ganha +10 pontos.</p>
+      </div></div>
+      <div class="passo"><span class="n">7</span><div>
         <h3>Modo espectador</h3>
         <p>Quem escolhe <b>ASSISTIR</b> vê a pergunta, as alternativas e os pontos de cada jogador ao vivo, mas não responde e não vê qual é a resposta certa.</p>
       </div></div>
-      <div class="passo"><span class="n">6</span><div>
+      <div class="passo"><span class="n">8</span><div>
         <h3>Fim do jogo</h3>
-        <p>Ao terminar as perguntas, aparecem sua pontuação (por exemplo, 120/250), uma mensagem de desempenho e a classificação de todos. O anfitrião pode tocar em <b>JOGAR NOVAMENTE</b>.</p>
-        <p>Dica: o botão ☀️/🌙 no canto da tela troca entre o modo claro e o escuro.</p>
+        <p>Aparece sua pontuação das perguntas (por exemplo, 120/250), os bônus, o total e a mensagem de desempenho. O <b>ranking</b> final usa o total de pontos e mostra quem venceu.</p>
+        <p>O anfitrião pode tocar em <b>JOGAR NOVAMENTE</b>. Dica: o botão ☀️/🌙 troca entre o modo claro e o escuro.</p>
       </div></div>
     </div>
     <div class="modal-rodape"><button type="button" class="btn" id="btnEntendi">ENTENDI</button></div>
@@ -508,16 +537,76 @@
       opcoes: ["Jogar aparelhos no lixo comum", "Queimar aparelhos antigos", "Reduzir o consumo, reutilizar, consertar e descartar corretamente", "Jogar eletrônicos em rios"], correta: 2 }
   ];
 
+
+  /* =====================================================
+     CURIOSIDADES (uma para cada pergunta, na mesma ordem)
+     ===================================================== */
+  const curiosidades = [
+    "Não são só celulares e computadores: brinquedos com pilha, fones de ouvido, geladeiras e até escovas de dente elétricas viram lixo eletrônico quando quebram.",
+    "O 'e' de e-lixo vem do inglês electronic. Em inglês, o termo mais usado é e-waste.",
+    "Aparelhos esquecidos na gaveta também contam: enquanto estão parados, ainda não foram reciclados nem reaproveitados. Doar ou levar a um ponto de coleta é o melhor caminho.",
+    "Alguns aparelhos têm chumbo, mercúrio e cádmio, substâncias que fazem mal à saúde e à natureza se forem descartadas de forma errada.",
+    "Muitas cidades têm ecopontos, e várias lojas e assistências técnicas recebem eletrônicos usados. Vale pesquisar o ponto mais perto de você.",
+    "No Brasil, a lei prevê a logística reversa: fabricantes, importadores e comerciantes devem organizar o recolhimento de pilhas, baterias e eletrônicos usados.",
+    "Que tal montar um coletor de pilhas na sua escola? Muitas escolas fazem isso e depois entregam tudo em um ponto de coleta.",
+    "Substâncias tóxicas podem se infiltrar na terra e chegar até a água do subsolo, afetando plantas, animais e pessoas.",
+    "Celulares e computadores têm metais como cobre, prata e ouro. Reciclar permite recuperar esses materiais e usá-los de novo.",
+    "O ouro e outros metais valiosos ficam principalmente nas placas de circuito. Reciclar ajuda a recuperá-los sem precisar minerar mais.",
+    "Computadores antigos podem ser reaproveitados: várias organizações os recondicionam e doam para escolas e projetos sociais.",
+    "Seu aparelho guarda fotos, mensagens e senhas. Faça um backup e restaure as configurações de fábrica antes de entregar ou doar.",
+    "Reciclar metais costuma gastar menos energia do que extrair e processar matéria-prima nova.",
+    "Um celular antigo pode virar despertador, câmera de segurança, controle remoto ou tocador de música, com o aplicativo certo.",
+    "Doar um aparelho que funciona dá uma nova vida a ele e ajuda quem ainda não tem acesso à tecnologia.",
+    "Os metais pesados podem se acumular em peixes e outros animais aquáticos e chegar até as pessoas.",
+    "Queimar plásticos e componentes eletrônicos pode liberar gases tóxicos no ar, que fazem mal a quem respira.",
+    "Cabos e carregadores têm cobre por dentro, um metal que pode ser reciclado várias vezes.",
+    "Ecopontos e lojas parceiras encaminham os eletrônicos para empresas de reciclagem, que separam o plástico, o vidro e os metais.",
+    "Aparelhos mais duráveis e com peças de reposição ficam mais tempo em uso, o que diminui o lixo gerado.",
+    "Muitas vezes, consertar custa menos do que comprar um aparelho novo, e ainda evita que um aparelho inteiro vire lixo.",
+    "Plástico, vidro e metais recuperados podem voltar para a indústria e virar peças de novos produtos.",
+    "As TVs antigas de tubo têm vidro com chumbo, por isso nunca devem ir para o lixo comum.",
+    "A responsabilidade é compartilhada: consumidores descartam direito, empresas recolhem e reciclam, e governos criam e fiscalizam as leis.",
+    "O melhor lixo eletrônico é o que nunca chega a ser gerado: antes de reciclar, vem reduzir, reutilizar e consertar."
+  ];
+
+  /* =====================================================
+     MINI DESAFIO DE DESCARTE (aparece a cada 5 perguntas)
+     correta = índice em "opcoes"
+     ===================================================== */
+  const desafios = [
+    { emoji: "🔋", objeto: "Desafio de descarte", pergunta: "Onde descartar: pilha usada?",
+      opcoes: ["🗑️ Lixo comum", "📍 Ponto de coleta", "🌱 Compostagem"], correta: 1,
+      explicacao: "Pilhas têm metais que fazem mal ao ambiente. Elas devem ir para um ponto de coleta, nunca para o lixo comum." },
+    { emoji: "🍌", objeto: "Desafio de descarte", pergunta: "Onde descartar: casca de banana?",
+      opcoes: ["🗑️ Lixo comum", "📍 Ponto de coleta", "🌱 Compostagem"], correta: 2,
+      explicacao: "Restos de frutas e verduras são orgânicos e podem virar adubo na compostagem." },
+    { emoji: "🍬", objeto: "Desafio de descarte", pergunta: "Onde descartar: chiclete mascado?",
+      opcoes: ["🗑️ Lixo comum", "📍 Ponto de coleta", "🌱 Compostagem"], correta: 0,
+      explicacao: "Chiclete mascado não é compostável nem eletrônico: vai para o lixo comum, de preferência embrulhado em papel." },
+    { emoji: "🔌", objeto: "Desafio de descarte", pergunta: "Onde descartar: carregador de celular quebrado?",
+      opcoes: ["🗑️ Lixo comum", "📍 Ponto de coleta", "🌱 Compostagem"], correta: 1,
+      explicacao: "Carregadores e cabos têm cobre e plástico que podem ser reciclados em pontos de coleta de eletrônicos." },
+    { emoji: "☕", objeto: "Desafio de descarte", pergunta: "Onde descartar: borra de café?",
+      opcoes: ["🗑️ Lixo comum", "📍 Ponto de coleta", "🌱 Compostagem"], correta: 2,
+      explicacao: "A borra de café é orgânica e pode ir para a compostagem." }
+  ];
+
   /* =====================================================
      CONFIGURAÇÃO
      ===================================================== */
   const PONTOS = 10;
   const TEMPO_MS = 10000;        // tempo para responder
-  const REVELAR_MS = 6000;       // tempo mostrando o resultado
+  const REVELAR_MS = 9000;       // tempo mostrando o resultado de uma pergunta
+  const REVELAR_DESAFIO_MS = 7000; // tempo mostrando o resultado do desafio
   const VEL_PERGUNTA = 26;       // ms por letra (pergunta)
   const VEL_OPCAO = 20;          // ms por letra (alternativas)
   const PAUSA_MS = 450;          // pausa entre alternativas
   const INICIO_MS = 350;
+  const DESAFIO_A_CADA = 5;      // um desafio de descarte depois de cada bloco de 5 perguntas
+  const PONTOS_DESAFIO = 10;
+  const BONUS_RAPIDO_MS = 3000, BONUS_RAPIDO = 5;   // resposta certa em até 3s
+  const BONUS_MEDIO_MS = 6000, BONUS_MEDIO = 2;     // resposta certa em até 6s
+  const BONUS_SEQ_PASSO = 2, BONUS_SEQ_MAX = 10;    // acertos seguidos
   const LETRAS = ["A", "B", "C", "D"];
   const CODIGO_CARACTERES = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -546,8 +635,15 @@
   let atual = null;           // pergunta montada (com alternativas embaralhadas)
   let escolha = -1;
   let confirmada = false;
-  let pts = 0;
+  let pts = 0;              // total (perguntas + bônus + desafio): usado no placar e no ranking
+  let ptsBase = 0;          // só as perguntas (máximo = MAXIMO)
   let acertos = 0;
+  let bonusVel = 0, bonusSeq = 0, ptsDesafio = 0, acertosDesafio = 0;
+  let streak = 0, maiorStreak = 0;
+  let tempoRespMs = 0;
+  let ultimoGanho = null;
+  let tipoAtual = "q";      // "q" = pergunta, "d" = desafio de descarte
+  let diAtual = 0;
   const pontuadas = new Set();
 
   const $ = (id) => document.getElementById(id);
@@ -628,17 +724,66 @@
       const tmp = ordem[i]; ordem[i] = ordem[j]; ordem[j] = tmp;
     }
     return {
+      tipo: "q",
+      chave: "q" + qi,
       qi: qi,
       p: p,
       textos: ordem.map(function (o) { return p.opcoes[o]; }),
-      corretaPos: ordem.indexOf(p.correta)
+      corretaPos: ordem.indexOf(p.correta),
+      extra: curiosidades[qi] || ""
     };
+  }
+
+  function montarDesafio(di, sem) {
+    const d = desafios[di];
+    const rnd = mulberry32((sem ^ Math.imul(di + 101, 2654435761)) >>> 0);
+    const ordem = d.opcoes.map(function (_, i) { return i; });
+    for (let i = ordem.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const tmp = ordem[i]; ordem[i] = ordem[j]; ordem[j] = tmp;
+    }
+    return {
+      tipo: "d",
+      chave: "d" + di,
+      di: di,
+      p: { emoji: d.emoji, objeto: d.objeto, pergunta: d.pergunta },
+      textos: ordem.map(function (o) { return d.opcoes[o]; }),
+      corretaPos: ordem.indexOf(d.correta),
+      extra: d.explicacao
+    };
+  }
+
+  function montarAtual() {
+    return tipoAtual === "d" ? montarDesafio(diAtual, semente) : montar(qiAtual, semente);
+  }
+
+  function chaveJogo() {
+    return tipoAtual + (tipoAtual === "q" ? qiAtual : diAtual);
+  }
+
+  function bonusDeVelocidade(ms) {
+    if (ms <= BONUS_RAPIDO_MS) return BONUS_RAPIDO;
+    if (ms <= BONUS_MEDIO_MS) return BONUS_MEDIO;
+    return 0;
+  }
+
+  function bonusDeSequencia(n) {
+    return n >= 2 ? Math.min((n - 1) * BONUS_SEQ_PASSO, BONUS_SEQ_MAX) : 0;
+  }
+
+  function zerarContadores() {
+    pts = 0; ptsBase = 0; acertos = 0;
+    bonusVel = 0; bonusSeq = 0; ptsDesafio = 0; acertosDesafio = 0;
+    streak = 0; maiorStreak = 0; tempoRespMs = 0; ultimoGanho = null;
+    pontuadas.clear();
+    escolha = -1;
+    confirmada = false;
   }
 
   function linhaDoTempo(m) {
     const L = { p: [INICIO_MS, INICIO_MS + m.p.pergunta.length * VEL_PERGUNTA], o: [] };
     let t = L.p[1] + PAUSA_MS * 1.5;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < m.textos.length; i++) {
       const dur = m.textos[i].length * VEL_OPCAO;
       L.o.push([t, t + dur]);
       t += dur + PAUSA_MS;
@@ -647,8 +792,8 @@
     return L;
   }
 
-  function leituraMs(qi) {
-    return linhaDoTempo(montar(qi, semente)).total + 300;
+  function leituraMs() {
+    return linhaDoTempo(montarAtual()).total + 300;
   }
 
   function mensagemDesempenho(pct) {
@@ -880,8 +1025,24 @@
 
   function ordenarRanking(js) {
     return js.slice().sort(function (a, b) {
-      return (ptsDe(b) - ptsDe(a)) || nomeDe(a).localeCompare(nomeDe(b));
+      return (ptsDe(b) - ptsDe(a)) || (acDe(b) - acDe(a)) || nomeDe(a).localeCompare(nomeDe(b));
     });
+  }
+
+  function acDe(p) { const v = p.presence && p.presence.ac; return typeof v === "number" ? v : 0; }
+  function seqDe(p) { const v = p.presence && p.presence.seq; return typeof v === "number" ? v : 0; }
+
+  // Posição com empates: quem tem a mesma pontuação fica na mesma colocação
+  function posicoes(rank) {
+    const out = [];
+    let posAnt = 0, ptsAnt = null;
+    rank.forEach(function (p, i) {
+      const v = ptsDe(p);
+      const pos = (v === ptsAnt) ? posAnt : i + 1;
+      posAnt = pos; ptsAnt = v;
+      out.push(pos);
+    });
+    return out;
   }
 
   function liItem(opts) {
@@ -895,7 +1056,7 @@
     }
     const nome = document.createElement("span");
     nome.className = "nome";
-    nome.textContent = (opts.host ? "👑 " : "") + opts.nome + (opts.eu ? " (você)" : "");
+    nome.textContent = (opts.host ? "👑 " : "") + opts.nome + (opts.eu ? " (você)" : "") + (opts.extra ? " " + opts.extra : "");
     li.appendChild(nome);
     if (opts.est) {
       const est = document.createElement("span");
@@ -919,6 +1080,8 @@
     return "👁️ Assistindo (" + es.length + "): " + nomes;
   }
 
+  function ordinal(n) { return n + "º"; }
+
   function renderizarListas(ps) {
     const eu = ps.find(function (p) { return p.isMe && p.sameTab; });
     const h = hostAtual(ps);
@@ -934,7 +1097,6 @@
       });
       $("salaTitulo").textContent = "Jogadores (" + js.length + ")";
       $("salaEspect").textContent = textoEspectadores(ps);
-      // O anfitrião que só assiste também aparece como espectador, com a coroa na faixa abaixo
       if (!js.length) {
         const vazio = document.createElement("li");
         vazio.textContent = "Ninguém jogando ainda";
@@ -947,44 +1109,69 @@
     // Placar durante o jogo
     if ($("telaJogo").classList.contains("ativa")) {
       const rank = ordenarRanking(js);
+      const pos = posicoes(rank);
       const ul = $("rankingJogo");
       ul.textContent = "";
       rank.forEach(function (p, i) {
         let est = "", ok = false;
         if (fase === "responder") {
-          ok = p.presence.resp === qiAtual;
+          ok = p.presence.resp === chaveJogo();
           est = ok ? "respondeu ✓" : "pensando…";
         }
         ul.appendChild(liItem({
-          pos: i + 1, nome: nomeDe(p), eu: eu && p.peer === eu.peer, host: p.peer === hostPeer,
+          pos: pos[i], nome: nomeDe(p), eu: eu && p.peer === eu.peer, host: p.peer === hostPeer,
+          extra: seqDe(p) >= 2 ? "🔥" + seqDe(p) : "",
           est: est, estOk: ok, pts: ptsDe(p)
         }));
       });
       $("espectJogo").textContent = textoEspectadores(ps);
     }
 
-    // Classificação final
+    // Ranking final da partida
     if ($("telaFinal").classList.contains("ativa")) {
       const rank = ordenarRanking(js);
+      const pos = posicoes(rank);
       const ul = $("rankingFinal");
       ul.textContent = "";
-      const medalhas = ["🥇", "🥈", "🥉"];
+      const medalhas = { 1: "🥇", 2: "🥈", 3: "🥉" };
       rank.forEach(function (p, i) {
         ul.appendChild(liItem({
-          pos: medalhas[i] || (i + 1), nome: nomeDe(p), eu: eu && p.peer === eu.peer, host: p.peer === hostPeer, pts: ptsDe(p)
+          pos: medalhas[pos[i]] || pos[i], nome: nomeDe(p), eu: eu && p.peer === eu.peer, host: p.peer === hostPeer,
+          est: acDe(p) + " acertos", pts: ptsDe(p)
         }));
       });
       $("espectFinal").textContent = textoEspectadores(ps);
+
+      // campeão
+      const camp = $("campeao");
+      if (!rank.length) {
+        camp.textContent = "";
+      } else {
+        const topoPts = ptsDe(rank[0]);
+        const topo = rank.filter(function (p) { return ptsDe(p) === topoPts; });
+        if (topoPts === 0) camp.textContent = "Ninguém pontuou nesta partida.";
+        else if (topo.length === 1) camp.textContent = "🏆 " + nomeDe(topo[0]) + (rank.length > 1 ? " venceu com " : " fez ") + topoPts + " pontos!";
+        else camp.textContent = "🤝 Empate no topo: " + topo.map(nomeDe).join(", ") + " com " + topoPts + " pontos!";
+      }
+
+      // minha colocação
+      const mp = $("minhaPos");
+      const idx = eu ? rank.findIndex(function (p) { return p.peer === eu.peer; }) : -1;
+      mp.textContent = (meuModo === "jogador" && idx >= 0 && rank.length > 1)
+        ? "Você ficou em " + ordinal(pos[idx]) + " lugar entre " + rank.length + " jogadores."
+        : "";
     }
   }
 
   /* =====================================================
      ANFITRIÃO (controla as fases do jogo)
      ===================================================== */
-  function setFase(f, qi) {
+  function setFase(f, qi, tipo, di) {
     if (qi === undefined) qi = qiAtual;
+    if (tipo === undefined) tipo = tipoAtual;
+    if (di === undefined) di = diAtual;
     seqHost = Math.max(seqHost, seqObs) + 1;
-    const j = { seed: semente, qi: qi, fase: f, seq: seqHost };
+    const j = { seed: semente, qi: qi, fase: f, seq: seqHost, tipo: tipo, di: di };
     pres({ jogo: j });
     aplicarJogo(j);
   }
@@ -992,29 +1179,45 @@
   function iniciarJogo() {
     if (!souHost) return;
     semente = (Math.random() * 4294967296) >>> 0;
-    setFase("ler", 0);
+    setFase("ler", 0, "q", 0);
+  }
+
+  // Desafio devido depois da pergunta qi? (retorna o índice do desafio ou -1)
+  function desafioDepois(qi) {
+    const n = qi + 1;
+    if (n % DESAFIO_A_CADA !== 0) return -1;
+    const di = n / DESAFIO_A_CADA - 1;
+    return di < desafios.length ? di : -1;
   }
 
   function avancar() {
-    if (qiAtual + 1 >= TOTAL) setFase("fim", qiAtual);
-    else setFase("ler", qiAtual + 1);
+    if (tipoAtual === "d") {
+      if (qiAtual + 1 >= TOTAL) setFase("fim", qiAtual, "q", 0);
+      else setFase("ler", qiAtual + 1, "q", 0);
+      return;
+    }
+    const di = desafioDepois(qiAtual);
+    if (di >= 0) setFase("ler", qiAtual, "d", di);
+    else if (qiAtual + 1 >= TOTAL) setFase("fim", qiAtual, "q", 0);
+    else setFase("ler", qiAtual + 1, "q", 0);
   }
 
   function todosResponderam() {
     const js = jogadores(pessoas());
     if (!js.length) return false;
-    return js.every(function (p) { return p.presence.resp === qiAtual; });
+    const chave = chaveJogo();
+    return js.every(function (p) { return p.presence.resp === chave; });
   }
 
   function hostTick() {
     if (!souHost || !sala) return;
     const dt = Date.now() - tFase;
     if (fase === "ler") {
-      if (dt >= leituraMs(qiAtual)) setFase("responder");
+      if (dt >= leituraMs()) setFase("responder");
     } else if (fase === "responder") {
       if (dt >= TEMPO_MS + 600 || (dt > 1500 && todosResponderam())) setFase("revelar");
     } else if (fase === "revelar") {
-      if (dt >= REVELAR_MS) avancar();
+      if (dt >= (tipoAtual === "d" ? REVELAR_DESAFIO_MS : REVELAR_MS)) avancar();
     }
   }
 
@@ -1067,12 +1270,8 @@
   }
 
   function resetarPartidaLocal() {
-    pts = 0;
-    acertos = 0;
-    pontuadas.clear();
-    escolha = -1;
-    confirmada = false;
-    pres({ pts: 0, resp: -1 });
+    zerarContadores();
+    pres({ pts: 0, resp: -1, ac: 0, seq: 0 });
   }
 
   function aplicarJogo(j) {
@@ -1080,6 +1279,8 @@
     seqObs = j.seq;
     semente = j.seed;
     qiAtual = j.qi;
+    tipoAtual = j.tipo || "q";
+    diAtual = j.di || 0;
     fase = j.fase;
     tFase = Date.now();
 
@@ -1088,16 +1289,16 @@
       atual = null;
       mostrar("telaSala");
     } else if (fase === "ler") {
-      if (qiAtual === 0) resetarPartidaLocal();
-      prepararPergunta(qiAtual);
+      if (qiAtual === 0 && tipoAtual === "q") resetarPartidaLocal();
+      prepararPergunta();
       mostrar("telaJogo");
     } else if (fase === "responder") {
-      if (!atual || atual.qi !== qiAtual) prepararPergunta(qiAtual);
+      if (!atual || atual.chave !== chaveJogo()) prepararPergunta();
       mostrar("telaJogo");
       leituraCompleta();
       iniciarResposta();
     } else if (fase === "revelar") {
-      if (!atual || atual.qi !== qiAtual) prepararPergunta(qiAtual);
+      if (!atual || atual.chave !== chaveJogo()) prepararPergunta();
       mostrar("telaJogo");
       leituraCompleta();
       revelar();
@@ -1132,13 +1333,15 @@
     el.appendChild(v); el.appendChild(i);
   }
 
-  function prepararPergunta(qi) {
-    atual = montar(qi, semente);
+  function prepararPergunta() {
+    atual = montarAtual();
     escolha = -1;
     confirmada = false;
 
     $("emoji").textContent = atual.p.emoji;
     $("objeto").textContent = atual.p.objeto;
+    $("objeto").classList.toggle("desafio", atual.tipo === "d");
+    $("curiosidade").classList.remove("mostrar");
     criarTexto(elPergunta, atual.p.pergunta);
 
     elOpcoes.textContent = "";
@@ -1164,7 +1367,7 @@
     $("btnResponder").style.display = meuModo === "jogador" ? "block" : "none";
     $("btnResponder").disabled = true;
     $("btnResponder").textContent = "RESPONDER";
-    $("dicaJogo").textContent = meuModo === "jogador" ? "Leia com calma. As alternativas aparecem uma por vez." : "Acompanhe a leitura. Os jogadores respondem depois.";
+    $("dicaJogo").textContent = meuModo === "jogador" ? (atual.tipo === "d" ? "Leia o objeto e escolha o local certo de descarte." : "Leia com calma. As alternativas aparecem uma por vez.") : "Acompanhe a leitura. Os jogadores respondem depois.";
     $("faixaEspect").classList.toggle("mostrar", meuModo === "espectador");
     $("topoTempo").className = "pill";
     $("topoTempo").textContent = "📖 Lendo";
@@ -1178,7 +1381,7 @@
     const e = Date.now() - tFase;
     const L = linhaDoTempo(atual);
     parteTexto(elPergunta, atual.p.pergunta, (e - L.p[0]) / VEL_PERGUNTA, e >= L.p[0] && e < L.p[1]);
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < atual.textos.length; i++) {
       const el = elsOpcao[i];
       if (!el) continue;
       const a = L.o[i][0], b = L.o[i][1];
@@ -1223,11 +1426,12 @@
   function confirmarResposta() {
     if (fase !== "responder" || meuModo !== "jogador" || confirmada || escolha < 0 || tempoRestante() <= 0) return;
     confirmada = true; // trava contra toques repetidos
+    tempoRespMs = Date.now() - tFase; // usado no bônus de velocidade
     elsOpcao.forEach(function (b) { b.disabled = true; });
     $("btnResponder").disabled = true;
     $("btnResponder").textContent = "RESPOSTA ENVIADA ✓";
     $("dicaJogo").textContent = "Resposta enviada. Aguarde os outros.";
-    pres({ resp: qiAtual });
+    pres({ resp: chaveJogo() });
   }
 
   function marcar(btn, simbolo) {
@@ -1240,6 +1444,8 @@
 
   function revelar() {
     const fb = $("feedback");
+    const cur = $("curiosidade");
+    const ehDesafio = atual.tipo === "d";
     $("btnResponder").style.display = "none";
     $("tempoFill").style.width = "0%";
     elsOpcao.forEach(function (b) { b.disabled = true; });
@@ -1248,34 +1454,81 @@
 
     if (meuModo === "jogador") {
       const correta = atual.corretaPos;
+      const acertou = confirmada && escolha === correta;
+      const chave = atual.chave;
+
+      // pontuação (uma única vez por pergunta/desafio)
+      if (!pontuadas.has(chave)) {
+        pontuadas.add(chave);
+        const streakAntes = streak;
+        let ganho = null;
+        if (!ehDesafio) {
+          if (acertou) {
+            streak++;
+            if (streak > maiorStreak) maiorStreak = streak;
+            acertos++;
+            ptsBase += PONTOS;
+            const bv = bonusDeVelocidade(tempoRespMs);
+            const bs = bonusDeSequencia(streak);
+            bonusVel += bv;
+            bonusSeq += bs;
+            ganho = { bv: bv, bs: bs };
+          } else {
+            streak = 0;
+          }
+        } else if (acertou) {
+          ptsDesafio += PONTOS_DESAFIO;
+          acertosDesafio++;
+        }
+        pts = ptsBase + bonusVel + bonusSeq + ptsDesafio;
+        pres({ pts: pts, ac: acertos, seq: streak });
+        ultimoGanho = { chave: chave, ganho: ganho, streakAntes: streakAntes, streakDepois: streak };
+      }
+      const info = (ultimoGanho && ultimoGanho.chave === chave) ? ultimoGanho : { ganho: null, streakAntes: 0, streakDepois: 0 };
+
       elsOpcao[correta].classList.add("correta");
       marcar(elsOpcao[correta], "✅");
 
-      if (confirmada && escolha === correta) {
-        if (!pontuadas.has(qiAtual)) {
-          pontuadas.add(qiAtual);
-          pts += PONTOS;
-          acertos++;
-          pres({ pts: pts });
+      if (acertou) {
+        let t = ehDesafio ? "Local certo! +" + PONTOS_DESAFIO + " pontos" : "Correto! +" + PONTOS + " pontos";
+        if (!ehDesafio && info.ganho) {
+          if (info.ganho.bv) t += "\n⚡ Bônus de velocidade: +" + info.ganho.bv;
+          if (info.ganho.bs) t += "\n🔥 Sequência de " + info.streakDepois + " acertos: +" + info.ganho.bs;
         }
         fb.className = "feedback mostrar acerto";
-        fb.textContent = "Correto! +" + PONTOS + " pontos";
-      } else if (confirmada) {
-        elsOpcao[escolha].classList.remove("sel");
-        elsOpcao[escolha].classList.add("errada");
-        marcar(elsOpcao[escolha], "❌");
-        fb.className = "feedback mostrar erro";
-        fb.textContent = "Resposta errada. A correta é a " + LETRAS[correta] + ".";
+        fb.textContent = t;
       } else {
-        fb.className = "feedback mostrar info";
-        fb.textContent = "Sem resposta enviada. A correta é a " + LETRAS[correta] + ".";
+        const base = ehDesafio
+          ? "O local certo é: " + atual.textos[correta] + "."
+          : "A correta é a " + LETRAS[correta] + ".";
+        if (confirmada) {
+          elsOpcao[escolha].classList.remove("sel");
+          elsOpcao[escolha].classList.add("errada");
+          marcar(elsOpcao[escolha], "❌");
+          fb.className = "feedback mostrar erro";
+          fb.textContent = (ehDesafio ? "Não foi dessa vez. " : "Resposta errada. ") + base;
+        } else {
+          fb.className = "feedback mostrar info";
+          fb.textContent = "Sem resposta enviada. " + base;
+        }
+        if (!ehDesafio && info.streakAntes >= 2) fb.textContent += "\n💔 Sua sequência de " + info.streakAntes + " acertos acabou.";
       }
       elsOpcao.forEach(function (b, i) { if (i !== correta && i !== escolha) b.classList.add("neutra"); });
+
+      // curiosidade / dica (só para quem joga: ela pode entregar a resposta)
+      if (atual.extra) {
+        cur.querySelector("b").textContent = ehDesafio ? "💡 Dica de descarte" : "💡 Você sabia?";
+        cur.querySelector("p").textContent = atual.extra;
+        cur.classList.add("mostrar");
+      }
       $("dicaJogo").textContent = "";
     } else {
       elsOpcao.forEach(function (b) { b.classList.remove("sel"); });
       fb.className = "feedback mostrar neutro";
       fb.textContent = "Os jogadores viram o resultado. Confira o placar abaixo.";
+      cur.querySelector("b").textContent = "💡 Curiosidade";
+      cur.querySelector("p").textContent = "A curiosidade aparece só para quem joga, para não revelar a resposta certa.";
+      cur.classList.add("mostrar");
       $("dicaJogo").textContent = "";
     }
     atualizarCabecalho();
@@ -1283,9 +1536,14 @@
 
   function atualizarCabecalho() {
     if (qiAtual < 0) return;
-    $("topoContador").textContent = "Pergunta " + (qiAtual + 1) + " de " + TOTAL;
-    $("topoPontos").textContent = meuModo === "jogador" ? ("⭐ " + pts) : "👁️ Assistindo";
-    const feitas = qiAtual + ((fase === "revelar" || fase === "fim") ? 1 : 0);
+    if (tipoAtual === "d") $("topoContador").textContent = "♻️ Desafio " + (diAtual + 1) + " de " + desafios.length;
+    else $("topoContador").textContent = "Pergunta " + (qiAtual + 1) + " de " + TOTAL;
+    $("topoPontos").textContent = meuModo === "jogador"
+      ? ("⭐ " + pts + (streak >= 2 ? " · 🔥" + streak : ""))
+      : "👁️ Assistindo";
+    const feitas = tipoAtual === "d"
+      ? qiAtual + 1
+      : qiAtual + ((fase === "revelar" || fase === "fim") ? 1 : 0);
     $("progressoFill").style.width = (feitas / TOTAL * 100) + "%";
     $("progresso").setAttribute("aria-valuenow", String(feitas));
     $("progresso").setAttribute("aria-valuemax", String(TOTAL));
@@ -1328,19 +1586,25 @@
   function mostrarFinal() {
     mostrar("telaFinal");
     if (meuModo === "jogador") {
-      const pct = Math.round(pts / MAXIMO * 100);
+      const pct = Math.round(ptsBase / MAXIMO * 100);
       const msg = mensagemDesempenho(pct);
       $("seloFinal").textContent = msg.selo;
       $("tituloFinal").textContent = "Fim de jogo!";
-      $("placarFinal").textContent = "Pontuação: " + pts + "/" + MAXIMO;
-      $("detalheFinal").textContent = "Você acertou " + acertos + " de " + TOTAL + " perguntas (" + pct + "%).";
+      $("placarFinal").textContent = "Pontuação: " + ptsBase + "/" + MAXIMO;
+      $("detalheFinal").textContent = [
+        "Você acertou " + acertos + " de " + TOTAL + " perguntas (" + pct + "%).",
+        "⚡ Bônus de velocidade: +" + bonusVel,
+        "🔥 Bônus de sequência: +" + bonusSeq + " (maior sequência: " + maiorStreak + ")",
+        "♻️ Desafio de descarte: +" + ptsDesafio + " (" + acertosDesafio + " de " + desafios.length + " acertos)",
+        "⭐ Total: " + pts + " pontos"
+      ].join("\n");
       $("mensagemFinal").textContent = msg.texto;
     } else {
       $("seloFinal").textContent = "👁️";
       $("tituloFinal").textContent = "Fim da partida";
       $("placarFinal").textContent = "";
       $("detalheFinal").textContent = "Você assistiu a esta partida. Veja a classificação final.";
-      $("mensagemFinal").textContent = "A pontuação máxima era " + MAXIMO + " pontos.";
+      $("mensagemFinal").textContent = "As perguntas valiam até " + MAXIMO + " pontos, fora bônus e desafios.";
     }
   }
 
@@ -1359,7 +1623,7 @@
     fase = "lobby";
     atual = null;
     qiAtual = -1;
-    pts = 0; acertos = 0; pontuadas.clear(); escolha = -1; confirmada = false;
+    zerarContadores();
     desinscrever = sala.onPeers(aoMudarPeers);
     sala.onErro(function (m) { aviso(m); });
     pres({ nome: meuNome, modo: modo, entrou: Date.now(), pts: 0, resp: -1, hb: Date.now() });
